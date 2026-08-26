@@ -6,6 +6,8 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { CodeLab } from "./pages/CodeLab";
+import { ProblemList } from "./pages/ProblemList";
+import { ProblemDetail } from "./pages/ProblemDetail";
 
 function App() {
   return (
@@ -29,6 +31,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <CodeLab />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems"
+            element={
+              <ProtectedRoute>
+                <ProblemList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems/:slug"
+            element={
+              <ProtectedRoute>
+                <ProblemDetail />
               </ProtectedRoute>
             }
           />

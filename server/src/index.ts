@@ -7,6 +7,7 @@ import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import compilerRoutes from "./routes/compiler.routes";
 import problemRoutes from "./routes/problem.routes";
+import submissionRoutes from "./routes/submission.routes";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/compiler", compilerRoutes);
 app.use("/api/problems", problemRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });
