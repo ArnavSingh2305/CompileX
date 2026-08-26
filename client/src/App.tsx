@@ -5,6 +5,7 @@ import { Navbar } from "./components/Navbar";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
+import { CodeLab } from "./pages/CodeLab";
 
 function App() {
   return (
@@ -20,6 +21,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/code-lab"
+            element={
+              <ProtectedRoute>
+                <CodeLab />
               </ProtectedRoute>
             }
           />

@@ -17,6 +17,7 @@ export const Navbar = () => {
         {user ? (
           <>
             <Link to="/dashboard" className="hover:text-blue-400">Dashboard</Link>
+            <Link to="/code-lab" className="hover:text-blue-400">Code Lab</Link>  
             <span className="text-sm text-slate-300">Hi, {user.name}</span>
             <button
               onClick={handleLogout}
