@@ -1,8 +1,11 @@
+import dns from "dns";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
+import compilerRoutes from "./routes/compiler.routes";
 
 dotenv.config();
 
@@ -12,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/compiler", compilerRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });
