@@ -8,6 +8,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { CodeLab } from "./pages/CodeLab";
 import { ProblemList } from "./pages/ProblemList";
 import { ProblemDetail } from "./pages/ProblemDetail";
+import { SubmissionDetail } from "./pages/SubmissionDetail";
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProblemDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/submissions/:id"
+            element={
+              <ProtectedRoute>
+                <SubmissionDetail />
               </ProtectedRoute>
             }
           />

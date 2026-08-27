@@ -80,7 +80,7 @@ export const Dashboard = () => {
           {recentSubmissions.map((sub) => (
             <Link
               key={sub._id}
-              to={`/problems/${sub.problem.slug}`}
+              to={`/submissions/${sub._id}`}
               className="flex justify-between items-center p-3 hover:bg-slate-50"
             >
               <div>

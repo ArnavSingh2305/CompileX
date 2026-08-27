@@ -88,3 +88,43 @@ export const getSubmissionHistory = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+export const getSubmissionById = async (req: AuthRequest, res: Response) => {
+  try {
+    const submission = await Submission.findById(req.params.id).populate(
+      "problem",
+      "title slug difficulty"
+    );
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    // Ownership check — critical security boundary from the plan
+    if (submission.user.toString() !== req.userId) {
+      return res.status(403).json({ message: "Not authorized to view this submission" });
+    }
+
+    res.status(200).json(submission);
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+export const getSubmissionsByProblem = async (req: AuthRequest, res: Response) => {
+  try {
+    const problem = await Problem.findOne({ slug: req.params.slug });
+    if (!problem) {
+      return res.status(404).json({ message: "Problem not found" });
+    }
+
+    const submissions = await Submission.find({
+      user: req.userId,
+      problem: problem._id,
+    })
+      .sort({ createdAt: -1 })
+      .select("-code"); // exclude code from list view, fetch full code only on detail view
+
+    res.status(200).json(submissions);
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
