@@ -76,3 +76,15 @@ export const submitSolution = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Submission failed", error: error.message });
   }
 };
+export const getSubmissionHistory = async (req: AuthRequest, res: Response) => {
+  try {
+    const submissions = await Submission.find({ user: req.userId })
+      .populate("problem", "title slug difficulty")
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    res.status(200).json(submissions);
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

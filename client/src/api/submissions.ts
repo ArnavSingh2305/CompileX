@@ -25,3 +25,17 @@ export const submitSolution = async (
   });
   return res.data;
 };
+export interface SubmissionHistoryItem {
+  _id: string;
+  problem: { title: string; slug: string; difficulty: string };
+  language: string;
+  status: string;
+  passedTestCases: number;
+  totalTestCases: number;
+  createdAt: string;
+}
+
+export const getSubmissionHistory = async (): Promise<SubmissionHistoryItem[]> => {
+  const res = await api.get<SubmissionHistoryItem[]>("/submissions/history");
+  return res.data;
+};
