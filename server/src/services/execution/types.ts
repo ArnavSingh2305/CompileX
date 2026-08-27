@@ -3,4 +3,5 @@ export interface ExecutionResult {
   stderr: string;
   compileError: string | null;
   exitCode: number;
+  signal?: string;
 }

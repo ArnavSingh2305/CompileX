@@ -22,38 +22,58 @@ export const submitSolution = async (req: AuthRequest, res: Response) => {
     let status: "Accepted" | "Wrong Answer" | "Compilation Error" | "Runtime Error" = "Accepted";
 
     for (const testCase of problem.testCases) {
-      const execResult = await executeCode(language, code, testCase.input);
+  const execResult = await executeCode(language, code, testCase.input);
 
-      if (execResult.compileError) {
-        status = "Compilation Error";
-        results.push({
-          input: testCase.isHidden ? "Hidden" : testCase.input,
-          expectedOutput: testCase.isHidden ? "Hidden" : testCase.expectedOutput,
-          actualOutput: execResult.compileError,
-          passed: false,
-          isHidden: testCase.isHidden,
-        });
-        break; // stop on compile error, same for every test case anyway
-      }
+  if (execResult.compileError) {
+    status = "Compilation Error";
+    results.push({
+      input: testCase.isHidden ? "Hidden" : testCase.input,
+      expectedOutput: testCase.isHidden ? "Hidden" : testCase.expectedOutput,
+      actualOutput: execResult.compileError,
+      passed: false,
+      isHidden: testCase.isHidden,
+    });
+    break;
+  }
 
-      const actual = execResult.stdout.trim();
-      const expected = testCase.expectedOutput.trim();
-      const passed = actual === expected;
+  if (execResult.signal || execResult.exitCode !== 0) {
+  status = "Runtime Error";
 
-      if (passed) passedCount++;
+  results.push({
+    input: testCase.isHidden
+      ? "Hidden"
+      : testCase.input,
+    expectedOutput: testCase.isHidden
+      ? "Hidden"
+      : testCase.expectedOutput,
+    actualOutput: execResult.signal
+      ? `Runtime Error (signal: ${execResult.signal})`
+      : `Runtime Error (exit code: ${execResult.exitCode})`,
+    passed: false,
+    isHidden: testCase.isHidden,
+  });
 
-      results.push({
-        input: testCase.isHidden ? "Hidden" : testCase.input,
-        expectedOutput: testCase.isHidden ? "Hidden" : testCase.expectedOutput,
-        actualOutput: testCase.isHidden ? (passed ? "Hidden" : "Hidden") : actual,
-        passed,
-        isHidden: testCase.isHidden,
-      });
-    }
+  break;
+}
 
-    if (status !== "Compilation Error") {
-      status = passedCount === problem.testCases.length ? "Accepted" : "Wrong Answer";
-    }
+  const actual = execResult.stdout.trim();
+  const expected = testCase.expectedOutput.trim();
+  const passed = actual === expected;
+
+  if (passed) passedCount++;
+
+  results.push({
+    input: testCase.isHidden ? "Hidden" : testCase.input,
+    expectedOutput: testCase.isHidden ? "Hidden" : testCase.expectedOutput,
+    actualOutput: testCase.isHidden ? "Hidden" : actual,
+    passed,
+    isHidden: testCase.isHidden,
+  });
+}
+
+if (status !== "Compilation Error" && status !== "Runtime Error") {
+  status = passedCount === problem.testCases.length ? "Accepted" : "Wrong Answer";
+}
 
     await Submission.create({
       user: req.userId,

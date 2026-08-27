@@ -45,9 +45,10 @@ export const executeWithWandbox = async (
       : null;
 
   return {
-    stdout: data.program_output || "",
-    stderr: data.program_error || "",
-    compileError,
-    exitCode: succeeded ? 0 : 1,
+  stdout: data.program_output || "",
+  stderr: data.program_error || "",
+  compileError,
+  exitCode: succeeded ? 0 : Number(data.status),
+  signal: data.signal || undefined,
   };
 };
