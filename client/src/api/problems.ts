@@ -6,6 +6,19 @@ export interface ProblemSummary {
   slug: string;
   difficulty: "Easy" | "Medium" | "Hard";
   topics: string[];
+  solved: boolean;
+}
+
+export interface RunResultItem {
+  input: string;
+  expectedOutput: string;
+  actualOutput: string;
+  passed: boolean;
+}
+
+export interface RunResponse {
+  compileError: string | null;
+  results: RunResultItem[];
 }
 
 export interface TestCase {
@@ -39,5 +52,14 @@ export const getProblems = async (): Promise<ProblemSummary[]> => {
 
 export const getProblemBySlug = async (slug: string): Promise<ProblemDetail> => {
   const res = await api.get<ProblemDetail>(`/problems/${slug}`);
+  return res.data;
+};
+
+export const runAgainstPublicTests = async (
+  slug: string,
+  language: string,
+  code: string
+): Promise<RunResponse> => {
+  const res = await api.post<RunResponse>(`/problems/${slug}/run`, { language, code });
   return res.data;
 };

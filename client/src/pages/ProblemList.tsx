@@ -42,22 +42,20 @@ export const ProblemList = () => {
             to={`/problems/${problem.slug}`}
             className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
           >
-            <div>
-              <p className="font-medium">{problem.title}</p>
-              <div className="flex gap-2 mt-1">
-                {problem.topics.map((topic) => (
-                  <span
-                    key={topic}
-                    className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded"
-                  >
-                    {topic}
-                  </span>
-                ))}
+            <div className="flex items-center gap-2">
+              {problem.solved && <span className="text-green-600 font-bold">✓</span>}
+              <div>
+                <p className="font-medium">{problem.title}</p>
+                <div className="flex gap-2 mt-1">
+                  {problem.topics.map((topic) => (
+                    <span key={topic} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                      {topic}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-            <span
-              className={`text-sm font-medium px-2 py-1 rounded ${difficultyColor[problem.difficulty]}`}
-            >
+            <span className={`text-sm font-medium px-2 py-1 rounded ${difficultyColor[problem.difficulty]}`}>
               {problem.difficulty}
             </span>
           </Link>

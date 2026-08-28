@@ -1,14 +1,37 @@
 import { Request, Response } from "express";
 import Problem from "../models/Problem";
+import Submission from "../models/Submission";
+import { executeCode } from "../services/execution";
+import { AuthRequest } from "../middleware/auth.middleware";
 
-export const getProblems = async (req: Request, res: Response) => {
+export const getProblems = async (req: AuthRequest, res: Response) => {
   try {
     const problems = await Problem.find().select(
       "title slug difficulty topics"
     );
-    res.status(200).json(problems);
+
+    const acceptedSubmissions = await Submission.find({
+      user: req.userId,
+      status: "Accepted",
+    }).select("problem");
+
+    const solvedProblemIds = new Set(
+      acceptedSubmissions.map((submission) =>
+        submission.problem.toString()
+      )
+    );
+
+    const problemsWithSolvedStatus = problems.map((problem) => ({
+      ...problem.toObject(),
+      solved: solvedProblemIds.has(problem._id.toString()),
+    }));
+
+    res.status(200).json(problemsWithSolvedStatus);
   } catch (error: any) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
 
@@ -31,5 +54,47 @@ export const getProblemBySlug = async (req: Request, res: Response) => {
     res.status(200).json(publicProblem);
   } catch (error: any) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+export const runAgainstPublicTests = async (req: AuthRequest, res: Response) => {
+  try {
+    const { language, code } = req.body;
+    if (!language || !code) {
+      return res.status(400).json({ message: "Language and code are required" });
+    }
+
+    const problem = await Problem.findOne({ slug: req.params.slug });
+    if (!problem) {
+      return res.status(404).json({ message: "Problem not found" });
+    }
+
+    const publicTests = problem.testCases.filter((tc) => !tc.isHidden);
+    const results = [];
+
+    for (const tc of publicTests) {
+      const execResult = await executeCode(language, code, tc.input);
+
+      if (execResult.compileError) {
+        return res.status(200).json({ compileError: execResult.compileError, results: [] });
+      }
+
+      if (execResult.signal) {
+        results.push({
+          input: tc.input,
+          expectedOutput: tc.expectedOutput,
+          actualOutput: `Runtime Error (signal: ${execResult.signal})`,
+          passed: false,
+        });
+        continue;
+      }
+
+      const actualOutput = execResult.stdout.trim();
+      const passed = actualOutput === tc.expectedOutput.trim();
+      results.push({ input: tc.input, expectedOutput: tc.expectedOutput, actualOutput, passed });
+    }
+
+    res.status(200).json({ compileError: null, results });
+  } catch (error: any) {
+    res.status(500).json({ message: "Run failed", error: error.message });
   }
 };

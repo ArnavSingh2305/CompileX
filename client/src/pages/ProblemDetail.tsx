@@ -4,6 +4,8 @@ import Editor from "@monaco-editor/react";
 
 import { getProblemBySlug } from "../api/problems";
 import type { ProblemDetail as ProblemDetailType } from "../api/problems";
+import { runAgainstPublicTests } from "../api/problems";
+import type { RunResponse } from "../api/problems";
 
 import {
   submitSolution,
@@ -52,6 +54,10 @@ export const ProblemDetail = () => {
 
   const [error, setError] =
     useState("");
+  
+  const [runResult, setRunResult] = useState<RunResponse | null>(null);
+  const [running, setRunning] = useState(false);
+  const [lastAction, setLastAction] = useState<"run" | "submit" | null>(null);
 
   // Description / Submissions tab
   const [activeTab, setActiveTab] =
@@ -94,13 +100,28 @@ export const ProblemDetail = () => {
     setLanguage(newLang);
     setCode(DEFAULT_CODE[newLang]);
   };
-
+  const handleRun = async () => {
+      if (!slug) return;
+      setRunning(true);
+      setError("");
+      setRunResult(null);
+      setLastAction("run");
+      try {
+        const res = await runAgainstPublicTests(slug, language, code);
+        setRunResult(res);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Run failed");
+      } finally {
+        setRunning(false);
+      }
+  };
   const handleSubmit = async () => {
     if (!slug) return;
 
     setSubmitting(true);
     setError("");
     setResult(null);
+    setLastAction("submit");
 
     try {
       const res = await submitSolution(
@@ -369,40 +390,31 @@ export const ProblemDetail = () => {
         {/* Language + Submit */}
 
         <div className="flex justify-between items-center mb-3">
-
           <select
             value={language}
-            onChange={(e) =>
-              handleLanguageChange(
-                e.target.value
-              )
-            }
+            onChange={(e) => handleLanguageChange(e.target.value)}
             className="border rounded px-3 py-2"
           >
-
-            {LANGUAGE_OPTIONS.map(
-              (opt) => (
-                <option
-                  key={opt.value}
-                  value={opt.value}
-                >
-                  {opt.label}
-                </option>
-              )
-            )}
-
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
-
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded disabled:opacity-50"
-          >
-            {submitting
-              ? "Running..."
-              : "Submit"}
-          </button>
-
+          <div className="flex gap-2">
+            <button
+              onClick={handleRun}
+              disabled={running || submitting}
+              className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              {running ? "Running..." : "Run"}
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || running}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded disabled:opacity-50"
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          </div>
         </div>
 
         {/* Monaco Editor */}
@@ -436,90 +448,55 @@ export const ProblemDetail = () => {
         {/* ================= RESULT PANEL ================= */}
 
         <div className="flex-1 overflow-y-auto bg-slate-900 text-slate-100 rounded p-4 font-mono text-sm">
+          {error && <p className="text-red-400">{error}</p>}
 
-          {error && (
-            <p className="text-red-400">
-              {error}
-            </p>
-          )}
-
-          {result && (
+          {lastAction === "run" && runResult && (
             <>
-
-              <p
-                className={`font-bold mb-2 ${
-                  result.status ===
-                  "Accepted"
-                    ? "text-green-400"
-                    : "text-red-400"
-                }`}
-              >
-                {result.status} —{" "}
-                {result.passedTestCases}/
-                {result.totalTestCases} passed
-              </p>
-
-              {result.results.map(
-                (r, i) => (
-
-                  <div
-                    key={i}
-                    className="mb-3 border-t border-slate-700 pt-2"
-                  >
-
-                    <p
-                      className={
-                        r.passed
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }
-                    >
-                      Test Case {i + 1}:{" "}
-                      {r.passed
-                        ? "Passed"
-                        : "Failed"}{" "}
-                      {r.isHidden &&
-                        "(Hidden)"}
-                    </p>
-
-                    {!r.isHidden && (
-                      <>
-                        <p className="text-slate-400">
-                          Input:{" "}
-                          {r.input}
-                        </p>
-
-                        <p className="text-slate-400">
-                          Expected:{" "}
-                          {r.expectedOutput}
-                        </p>
-
-                        <p className="text-slate-400">
-                          Got:{" "}
-                          {r.actualOutput}
-                        </p>
-                      </>
-                    )}
-
-                  </div>
-
-                )
+              {runResult.compileError ? (
+                <p className="text-red-400">Compilation Error{"\n"}{runResult.compileError}</p>
+              ) : (
+                <>
+                  <p className="text-slate-400 mb-2">Run against public test cases only — not saved to history</p>
+                  {runResult.results.map((r, i) => (
+                    <div key={i} className="mb-3 border-t border-slate-700 pt-2">
+                      <p className={r.passed ? "text-green-400" : "text-red-400"}>
+                        Test Case {i + 1}: {r.passed ? "Passed" : "Failed"}
+                      </p>
+                      <p className="text-slate-400">Input: {r.input}</p>
+                      <p className="text-slate-400">Expected: {r.expectedOutput}</p>
+                      <p className="text-slate-400">Got: {r.actualOutput}</p>
+                    </div>
+                  ))}
+                </>
               )}
-
             </>
           )}
 
-          {!result && !error && (
-            <p className="text-slate-500">
-              Click Submit to run against
-              test cases
-            </p>
+          {lastAction === "submit" && result && (
+            <>
+              <p className={`font-bold mb-2 ${result.status === "Accepted" ? "text-green-400" : "text-red-400"}`}>
+                {result.status} — {result.passedTestCases}/{result.totalTestCases} passed
+              </p>
+              {result.results.map((r, i) => (
+                <div key={i} className="mb-3 border-t border-slate-700 pt-2">
+                  <p className={r.passed ? "text-green-400" : "text-red-400"}>
+                    Test Case {i + 1}: {r.passed ? "Passed" : "Failed"} {r.isHidden && "(Hidden)"}
+                  </p>
+                  {!r.isHidden && (
+                    <>
+                      <p className="text-slate-400">Input: {r.input}</p>
+                      <p className="text-slate-400">Expected: {r.expectedOutput}</p>
+                      <p className="text-slate-400">Got: {r.actualOutput}</p>
+                    </>
+                  )}
+                </div>
+              ))}
+            </>
           )}
 
+          {!lastAction && !error && <p className="text-slate-500">Click Run to test, or Submit to record your solution</p>}
         </div>
-
       </div>
-
     </div>
   );
 };
