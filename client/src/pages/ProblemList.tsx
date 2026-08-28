@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getProblems } from "../api/problems";
+import {
+  getProblems,
+  getAllTopics,
+} from "../api/problems";
 import type { ProblemSummary } from "../api/problems";
 
 const difficultyColor: Record<string, string> = {
@@ -11,56 +14,100 @@ const difficultyColor: Record<string, string> = {
 
 export const ProblemList = () => {
   const [problems, setProblems] = useState<ProblemSummary[]>([]);
+  const [topics, setTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [search, setSearch] = useState("");
+  const [difficulty, setDifficulty] = useState("All");
+  const [topic, setTopic] = useState("");
+  const [status, setStatus] = useState("All");
+
   useEffect(() => {
-    const fetchProblems = async () => {
-      try {
-        const data = await getProblems();
-        setProblems(data);
-      } catch (err: any) {
-        setError("Failed to load problems");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProblems();
+    getAllTopics().then(setTopics).catch(() => {});
   }, []);
 
-  if (loading) return <div className="p-6">Loading problems...</div>;
-  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  useEffect(() => {
+    setLoading(true);
+    const timeout = setTimeout(() => {
+      getProblems({
+        search: search || undefined,
+        difficulty: difficulty !== "All" ? difficulty : undefined,
+        topic: topic || undefined,
+        status: status !== "All" ? status.toLowerCase() : undefined,
+      })
+        .then(setProblems)
+        .catch(() => setError("Failed to load problems"))
+        .finally(() => setLoading(false));
+    }, 300); // debounce search input
+
+    return () => clearTimeout(timeout);
+  }, [search, difficulty, topic, status]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">DSA Problems</h1>
+      <h1 className="text-2xl font-bold mb-4">DSA Problems</h1>
 
-      <div className="bg-white rounded-lg shadow divide-y">
-        {problems.map((problem) => (
-          <Link
-            key={problem._id}
-            to={`/problems/${problem.slug}`}
-            className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
-          >
-            <div className="flex items-center gap-2">
-              {problem.solved && <span className="text-green-600 font-bold">✓</span>}
-              <div>
-                <p className="font-medium">{problem.title}</p>
-                <div className="flex gap-2 mt-1">
-                  {problem.topics.map((topic) => (
-                    <span key={topic} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                      {topic}
-                    </span>
-                  ))}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Search problems..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
+        />
+        <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="border rounded px-3 py-2">
+          <option value="All">All Difficulties</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+        <select value={topic} onChange={(e) => setTopic(e.target.value)} className="border rounded px-3 py-2">
+          <option value="">All Topics</option>
+          {topics.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="border rounded px-3 py-2">
+          <option value="All">All</option>
+          <option value="Solved">Solved</option>
+          <option value="Unsolved">Unsolved</option>
+        </select>
+      </div>
+
+      {error && <p className="text-red-600">{error}</p>}
+      {loading ? (
+        <p className="text-slate-500">Loading...</p>
+      ) : problems.length === 0 ? (
+        <p className="text-slate-500">No problems match your filters.</p>
+      ) : (
+        <div className="bg-white rounded-lg shadow divide-y">
+          {problems.map((problem) => (
+            <Link
+              key={problem._id}
+              to={`/problems/${problem.slug}`}
+              className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
+            >
+              <div className="flex items-center gap-2">
+                {problem.solved && <span className="text-green-600 font-bold">✓</span>}
+                <div>
+                  <p className="font-medium">{problem.title}</p>
+                  <div className="flex gap-2 mt-1">
+                    {problem.topics.map((t) => (
+                      <span key={t} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-            <span className={`text-sm font-medium px-2 py-1 rounded ${difficultyColor[problem.difficulty]}`}>
-              {problem.difficulty}
-            </span>
-          </Link>
-        ))}
-      </div>
+              <span className={`text-sm font-medium px-2 py-1 rounded ${difficultyColor[problem.difficulty]}`}>
+                {problem.difficulty}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

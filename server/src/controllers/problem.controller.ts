@@ -6,9 +6,23 @@ import { AuthRequest } from "../middleware/auth.middleware";
 
 export const getProblems = async (req: AuthRequest, res: Response) => {
   try {
-    const problems = await Problem.find().select(
-      "title slug difficulty topics"
-    );
+    const { search, difficulty, topic, status } = req.query;
+
+    const filter: any = {};
+
+    if (search) {
+      filter.title = { $regex: search as string, $options: "i" };
+    }
+
+    if (difficulty && difficulty !== "All") {
+      filter.difficulty = difficulty;
+    }
+
+    if (topic) {
+      filter.topics = topic;
+    }
+
+    const problems = await Problem.find(filter).select("title slug difficulty topics");
 
     const acceptedSubmissions = await Submission.find({
       user: req.userId,
@@ -16,15 +30,19 @@ export const getProblems = async (req: AuthRequest, res: Response) => {
     }).select("problem");
 
     const solvedProblemIds = new Set(
-      acceptedSubmissions.map((submission) =>
-        submission.problem.toString()
-      )
+      acceptedSubmissions.map((submission) => submission.problem.toString())
     );
 
-    const problemsWithSolvedStatus = problems.map((problem) => ({
+    let problemsWithSolvedStatus = problems.map((problem) => ({
       ...problem.toObject(),
       solved: solvedProblemIds.has(problem._id.toString()),
     }));
+
+    if (status === "solved") {
+      problemsWithSolvedStatus = problemsWithSolvedStatus.filter((p) => p.solved);
+    } else if (status === "unsolved") {
+      problemsWithSolvedStatus = problemsWithSolvedStatus.filter((p) => !p.solved);
+    }
 
     res.status(200).json(problemsWithSolvedStatus);
   } catch (error: any) {
@@ -96,5 +114,13 @@ export const runAgainstPublicTests = async (req: AuthRequest, res: Response) => 
     res.status(200).json({ compileError: null, results });
   } catch (error: any) {
     res.status(500).json({ message: "Run failed", error: error.message });
+  }
+};
+export const getAllTopics = async (req: AuthRequest, res: Response) => {
+  try {
+    const topics = await Problem.distinct("topics");
+    res.status(200).json(topics.sort());
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

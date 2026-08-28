@@ -9,6 +9,13 @@ export interface ProblemSummary {
   solved: boolean;
 }
 
+export interface ProblemFilters {
+  search?: string;
+  difficulty?: string;
+  topic?: string;
+  status?: string;
+}
+
 export interface RunResultItem {
   input: string;
   expectedOutput: string;
@@ -45,8 +52,19 @@ export interface ProblemDetail {
   testCases: TestCase[];
 }
 
-export const getProblems = async (): Promise<ProblemSummary[]> => {
-  const res = await api.get<ProblemSummary[]>("/problems");
+export const getProblems = async (filters: ProblemFilters = {}): Promise<ProblemSummary[]> => {
+  const params = new URLSearchParams();
+  if (filters.search) params.append("search", filters.search);
+  if (filters.difficulty) params.append("difficulty", filters.difficulty);
+  if (filters.topic) params.append("topic", filters.topic);
+  if (filters.status) params.append("status", filters.status);
+
+  const res = await api.get<ProblemSummary[]>(`/problems?${params.toString()}`);
+  return res.data;
+};
+
+export const getAllTopics = async (): Promise<string[]> => {
+  const res = await api.get<string[]>("/problems/topics");
   return res.data;
 };
 
