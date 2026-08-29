@@ -7,6 +7,7 @@ export interface ProblemSummary {
   difficulty: "Easy" | "Medium" | "Hard";
   topics: string[];
   solved: boolean;
+  bookmarked: boolean;
 }
 
 export interface ProblemFilters {
@@ -50,6 +51,7 @@ export interface ProblemDetail {
   constraints: string;
   examples: Example[];
   testCases: TestCase[];
+  bookmarked: boolean;
 }
 
 export const getProblems = async (filters: ProblemFilters = {}): Promise<ProblemSummary[]> => {
@@ -79,5 +81,10 @@ export const runAgainstPublicTests = async (
   code: string
 ): Promise<RunResponse> => {
   const res = await api.post<RunResponse>(`/problems/${slug}/run`, { language, code });
+  return res.data;
+};
+
+export const toggleBookmark = async (slug: string): Promise<{ bookmarked: boolean }> => {
+  const res = await api.post<{ bookmarked: boolean }>(`/bookmarks/${slug}/toggle`);
   return res.data;
 };

@@ -72,9 +72,9 @@ export const ProblemList = () => {
           <option value="All">All</option>
           <option value="Solved">Solved</option>
           <option value="Unsolved">Unsolved</option>
+          <option value="Bookmarked">Bookmarked</option>
         </select>
-      </div>
-
+        </div>
       {error && <p className="text-red-600">{error}</p>}
       {loading ? (
         <p className="text-slate-500">Loading...</p>
@@ -89,7 +89,13 @@ export const ProblemList = () => {
               className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
             >
               <div className="flex items-center gap-2">
-                {problem.solved && <span className="text-green-600 font-bold">✓</span>}
+                {problem.solved && (
+                  <span className="text-green-600 font-bold">&#10003;</span>
+                )}
+
+                {problem.bookmarked && (
+                  <span className="text-yellow-500">&#9733;</span>
+                )}
                 <div>
                   <p className="font-medium">{problem.title}</p>
                   <div className="flex gap-2 mt-1">

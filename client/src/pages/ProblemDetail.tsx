@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 
-import { getProblemBySlug } from "../api/problems";
+import { getProblemBySlug, toggleBookmark } from "../api/problems";
 import type { ProblemDetail as ProblemDetailType } from "../api/problems";
 import { runAgainstPublicTests } from "../api/problems";
 import type { RunResponse } from "../api/problems";
@@ -41,6 +41,8 @@ export const ProblemDetail = () => {
   const [problem, setProblem] =
     useState<ProblemDetailType | null>(null);
 
+  const [bookmarked, setBookmarked] = useState(false);
+
   const [language, setLanguage] = useState("cpp");
 
   const [code, setCode] =
@@ -70,14 +72,15 @@ export const ProblemDetail = () => {
     useState<SubmissionHistoryItem[]>([]);
 
   // Load problem
+  // update the useEffect that loads the problem:
   useEffect(() => {
     if (!slug) return;
-
     getProblemBySlug(slug)
-      .then(setProblem)
-      .catch(() =>
-        setError("Failed to load problem")
-      );
+      .then((data) => {
+        setProblem(data);
+        setBookmarked(data.bookmarked);
+      })
+      .catch(() => setError("Failed to load problem"));
   }, [slug]);
 
   // Load submissions when Submissions tab is opened
@@ -100,6 +103,17 @@ export const ProblemDetail = () => {
     setLanguage(newLang);
     setCode(DEFAULT_CODE[newLang]);
   };
+
+  const handleToggleBookmark = async () => {
+    if (!slug) return;
+    try {
+      const res = await toggleBookmark(slug);
+      setBookmarked(res.bookmarked);
+    } catch {
+      // fail silently, non-critical action
+    }
+  };
+
   const handleRun = async () => {
       if (!slug) return;
       setRunning(true);
@@ -214,21 +228,17 @@ export const ProblemDetail = () => {
         {activeTab === "description" ? (
           <>
             <div className="flex items-center gap-3 mb-4">
-
-              <h1 className="text-xl font-bold">
-                {problem.title}
-              </h1>
-
-              <span
-                className={`text-xs font-medium px-2 py-1 rounded ${
-                  difficultyColor[
-                    problem.difficulty
-                  ]
-                }`}
-              >
+              <h1 className="text-xl font-bold">{problem.title}</h1>
+              <span className={`text-xs font-medium px-2 py-1 rounded ${difficultyColor[problem.difficulty]}`}>
                 {problem.difficulty}
               </span>
-
+              <button
+                onClick={handleToggleBookmark}
+                className="ml-auto text-2xl"
+                title={bookmarked ? "Remove bookmark" : "Add bookmark"}
+              >
+                {bookmarked ? "★" : "☆"}
+              </button>
             </div>
 
             {/* Topics */}

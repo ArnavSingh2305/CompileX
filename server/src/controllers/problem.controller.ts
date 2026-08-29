@@ -3,24 +3,16 @@ import Problem from "../models/Problem";
 import Submission from "../models/Submission";
 import { executeCode } from "../services/execution";
 import { AuthRequest } from "../middleware/auth.middleware";
+import Bookmark from "../models/Bookmark";
 
 export const getProblems = async (req: AuthRequest, res: Response) => {
   try {
     const { search, difficulty, topic, status } = req.query;
 
     const filter: any = {};
-
-    if (search) {
-      filter.title = { $regex: search as string, $options: "i" };
-    }
-
-    if (difficulty && difficulty !== "All") {
-      filter.difficulty = difficulty;
-    }
-
-    if (topic) {
-      filter.topics = topic;
-    }
+    if (search) filter.title = { $regex: search as string, $options: "i" };
+    if (difficulty && difficulty !== "All") filter.difficulty = difficulty;
+    if (topic) filter.topics = topic;
 
     const problems = await Problem.find(filter).select("title slug difficulty topics");
 
@@ -28,32 +20,34 @@ export const getProblems = async (req: AuthRequest, res: Response) => {
       user: req.userId,
       status: "Accepted",
     }).select("problem");
-
     const solvedProblemIds = new Set(
-      acceptedSubmissions.map((submission) => submission.problem.toString())
+      acceptedSubmissions.map((s) => s.problem.toString())
     );
 
-    let problemsWithSolvedStatus = problems.map((problem) => ({
+    const bookmarks = await Bookmark.find({ user: req.userId }).select("problem");
+    const bookmarkedProblemIds = new Set(bookmarks.map((b) => b.problem.toString()));
+
+    let problemsWithStatus = problems.map((problem) => ({
       ...problem.toObject(),
       solved: solvedProblemIds.has(problem._id.toString()),
+      bookmarked: bookmarkedProblemIds.has(problem._id.toString()),
     }));
 
     if (status === "solved") {
-      problemsWithSolvedStatus = problemsWithSolvedStatus.filter((p) => p.solved);
+      problemsWithStatus = problemsWithStatus.filter((p) => p.solved);
     } else if (status === "unsolved") {
-      problemsWithSolvedStatus = problemsWithSolvedStatus.filter((p) => !p.solved);
+      problemsWithStatus = problemsWithStatus.filter((p) => !p.solved);
+    } else if (status === "bookmarked") {
+      problemsWithStatus = problemsWithStatus.filter((p) => p.bookmarked);
     }
 
-    res.status(200).json(problemsWithSolvedStatus);
+    res.status(200).json(problemsWithStatus);
   } catch (error: any) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-export const getProblemBySlug = async (req: Request, res: Response) => {
+export const getProblemBySlug = async (req: AuthRequest, res: Response) => {
   try {
     const problem = await Problem.findOne({ slug: req.params.slug }).select(
       "title slug difficulty topics description constraints examples testCases"
@@ -63,10 +57,12 @@ export const getProblemBySlug = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Problem not found" });
     }
 
-    // Only send public (non-hidden) test cases to the frontend
+    const bookmark = await Bookmark.findOne({ user: req.userId, problem: problem._id });
+
     const publicProblem = {
       ...problem.toObject(),
       testCases: problem.testCases.filter((tc) => !tc.isHidden),
+      bookmarked: !!bookmark,
     };
 
     res.status(200).json(publicProblem);
@@ -74,6 +70,7 @@ export const getProblemBySlug = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 export const runAgainstPublicTests = async (req: AuthRequest, res: Response) => {
   try {
     const { language, code } = req.body;
