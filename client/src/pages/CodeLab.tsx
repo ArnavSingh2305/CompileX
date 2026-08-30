@@ -3,10 +3,13 @@ import Editor from "@monaco-editor/react";
 import { runCode } from "../api/compiler";
 import type { RunResult } from "../api/compiler";
 import { DEFAULT_CODE, LANGUAGE_OPTIONS } from "../constants/defaultCode";
+import { useLocation } from "react-router-dom";
 
 export const CodeLab = () => {
-  const [language, setLanguage] = useState("cpp");
-  const [code, setCode] = useState(DEFAULT_CODE["cpp"]);
+  const location = useLocation();
+  const prefill = location.state as { prefillCode?: string; prefillLanguage?: string } | null;
+  const [language, setLanguage] = useState(prefill?.prefillLanguage || "cpp");
+  const [code, setCode] = useState(prefill?.prefillCode || DEFAULT_CODE[prefill?.prefillLanguage || "cpp"]);
   const [stdin, setStdin] = useState("");
   const [result, setResult] = useState<RunResult | null>(null);
   const [loading, setLoading] = useState(false);

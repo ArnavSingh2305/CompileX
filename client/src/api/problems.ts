@@ -41,6 +41,12 @@ export interface Example {
   explanation?: string;
 }
 
+export interface RelatedArticle {
+  _id: string;
+  title: string;
+  slug: string;
+  summary: string;
+}
 export interface ProblemDetail {
   _id: string;
   title: string;
@@ -52,6 +58,7 @@ export interface ProblemDetail {
   examples: Example[];
   testCases: TestCase[];
   bookmarked: boolean;
+  relatedArticles: RelatedArticle[];
 }
 
 export const getProblems = async (filters: ProblemFilters = {}): Promise<ProblemSummary[]> => {

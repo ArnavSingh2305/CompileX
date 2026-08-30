@@ -10,6 +10,7 @@ import problemRoutes from "./routes/problem.routes";
 import submissionRoutes from "./routes/submission.routes";
 import statsRoutes from "./routes/stats.routes";
 import bookmarkRoutes from "./routes/bookmark.routes";
+import articleRoutes from "./routes/article.routes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/api/problems", problemRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/articles", articleRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });

@@ -7,6 +7,7 @@ import type { ProblemDetail as ProblemDetailType } from "../api/problems";
 import { runAgainstPublicTests } from "../api/problems";
 import type { RunResponse } from "../api/problems";
 
+
 import {
   submitSolution,
   getSubmissionsByProblem,
@@ -72,9 +73,10 @@ export const ProblemDetail = () => {
     useState<SubmissionHistoryItem[]>([]);
 
   // Load problem
-  // update the useEffect that loads the problem:
+  // Load problem
   useEffect(() => {
     if (!slug) return;
+
     getProblemBySlug(slug)
       .then((data) => {
         setProblem(data);
@@ -82,8 +84,10 @@ export const ProblemDetail = () => {
       })
       .catch(() => setError("Failed to load problem"));
   }, [slug]);
+  // update the useEffect that loads the problem:
 
   // Load submissions when Submissions tab is opened
+  
   useEffect(() => {
     if (
       !slug ||
@@ -309,6 +313,23 @@ export const ProblemDetail = () => {
                   {problem.constraints}
                 </pre>
               </>
+            )}
+            {problem.relatedArticles.length > 0 && (
+              <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3">
+                <p className="text-sm font-medium text-blue-800 mb-1">
+                  📖 Related Learning
+                </p>
+
+                {problem.relatedArticles.map((a) => (
+                  <Link
+                    key={a._id}
+                    to={`/learn/${a.slug}`}
+                    className="text-blue-600 hover:underline text-sm block"
+                  >
+                    {a.title}
+                  </Link>
+                ))}
+              </div>
             )}
           </>
         ) : (

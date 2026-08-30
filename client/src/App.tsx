@@ -9,6 +9,8 @@ import { CodeLab } from "./pages/CodeLab";
 import { ProblemList } from "./pages/ProblemList";
 import { ProblemDetail } from "./pages/ProblemDetail";
 import { SubmissionDetail } from "./pages/SubmissionDetail";
+import { ArticleList } from "./pages/ArticleList";
+import { ArticleReader } from "./pages/ArticleReader";
 
 function App() {
   return (
@@ -59,6 +61,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/learn" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
+          <Route path="/learn/:slug" element={<ProtectedRoute><ArticleReader /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -4,6 +4,7 @@ import Submission from "../models/Submission";
 import { executeCode } from "../services/execution";
 import { AuthRequest } from "../middleware/auth.middleware";
 import Bookmark from "../models/Bookmark";
+import Article from "../models/Article";
 
 export const getProblems = async (req: AuthRequest, res: Response) => {
   try {
@@ -59,10 +60,15 @@ export const getProblemBySlug = async (req: AuthRequest, res: Response) => {
 
     const bookmark = await Bookmark.findOne({ user: req.userId, problem: problem._id });
 
+    const relatedArticles = await Article.find({
+      relatedProblemSlugs: problem.slug,
+    }).select("title slug summary");
+
     const publicProblem = {
       ...problem.toObject(),
       testCases: problem.testCases.filter((tc) => !tc.isHidden),
       bookmarked: !!bookmark,
+      relatedArticles,
     };
 
     res.status(200).json(publicProblem);
