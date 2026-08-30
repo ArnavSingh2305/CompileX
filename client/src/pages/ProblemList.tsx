@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   getProblems,
   getAllTopics,
@@ -20,7 +21,8 @@ export const ProblemList = () => {
 
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState("All");
-  const [topic, setTopic] = useState("");
+  const [searchParams] = useSearchParams();
+  const [topic, setTopic] = useState(searchParams.get("topic") || "");
   const [status, setStatus] = useState("All");
 
   useEffect(() => {
