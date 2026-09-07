@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { AIPanel } from "../components/AIPanel";
 
 import { getProblemBySlug, toggleBookmark } from "../api/problems";
 import type { ProblemDetail as ProblemDetailType } from "../api/problems";
@@ -61,6 +62,7 @@ export const ProblemDetail = () => {
   const [runResult, setRunResult] = useState<RunResponse | null>(null);
   const [running, setRunning] = useState(false);
   const [lastAction, setLastAction] = useState<"run" | "submit" | null>(null);
+  const [lastErrorOutput, setLastErrorOutput] = useState("");
 
   // Description / Submissions tab
   const [activeTab, setActiveTab] =
@@ -127,6 +129,12 @@ export const ProblemDetail = () => {
       try {
         const res = await runAgainstPublicTests(slug, language, code);
         setRunResult(res);
+        if (res.compileError) {
+          setLastErrorOutput(res.compileError);
+        } else {
+          const failedCase = res.results.find((r) => !r.passed);
+          setLastErrorOutput(failedCase?.actualOutput || "");
+        }
       } catch (err: any) {
         setError(err.response?.data?.message || "Run failed");
       } finally {
@@ -149,6 +157,13 @@ export const ProblemDetail = () => {
       );
 
       setResult(res);
+
+      if (res.status !== "Accepted") {
+        const failedCase = res.results.find((r) => !r.passed);
+        setLastErrorOutput(failedCase?.actualOutput || "");
+      } else {
+        setLastErrorOutput("");
+      }
 
       // Refresh submissions if the
       // Submissions tab is currently open
@@ -329,8 +344,10 @@ export const ProblemDetail = () => {
                     {a.title}
                   </Link>
                 ))}
+                
               </div>
             )}
+            <AIPanel slug={slug!} code={code} language={language} lastErrorOutput={lastErrorOutput} />
           </>
         ) : (
 
