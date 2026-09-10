@@ -1,4 +1,5 @@
 import { executeWithWandbox } from "./wandbox.provider";
+import { executeWithJudge0 } from "./judge0.provider";
 import { ExecutionResult } from "./types";
 
 export const executeCode = async (
@@ -10,6 +11,10 @@ export const executeCode = async (
 
   if (provider === "wandbox") {
     return executeWithWandbox(language, code, stdin);
+  }
+
+  if (provider === "judge0") {
+    return executeWithJudge0(language, code, stdin);
   }
 
   throw new Error(`Unknown execution provider: ${provider}`);
