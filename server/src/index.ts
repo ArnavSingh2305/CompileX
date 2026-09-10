@@ -12,13 +12,14 @@ import statsRoutes from "./routes/stats.routes";
 import bookmarkRoutes from "./routes/bookmark.routes";
 import articleRoutes from "./routes/article.routes";
 import aiRoutes from "./routes/ai.routes";
+import passport from "./config/passport";
 
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+app.use(passport.initialize());
 app.use("/api/auth", authRoutes);
 app.use("/api/compiler", compilerRoutes);
 app.use("/api/problems", problemRoutes);

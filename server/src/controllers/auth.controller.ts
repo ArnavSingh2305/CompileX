@@ -238,3 +238,8 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
   }
 };
+export const googleCallback = (req: Request, res: Response) => {
+  const user = req.user as any;
+  const token = generateToken(user._id.toString());
+  res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
+};
