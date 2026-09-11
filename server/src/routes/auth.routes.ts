@@ -5,9 +5,11 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  getMe,
 } from "../controllers/auth.controller";
 import passport from "passport";
 import { googleCallback } from "../controllers/auth.controller";
+import { protect } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -24,5 +26,6 @@ router.get(
   passport.authenticate("google", { session: false, failureRedirect: `${process.env.CLIENT_URL}/login` }),
   googleCallback
 );
+router.get("/me", protect, getMe);
 
 export default router;

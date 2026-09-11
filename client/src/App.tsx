@@ -11,6 +11,10 @@ import { ProblemDetail } from "./pages/ProblemDetail";
 import { SubmissionDetail } from "./pages/SubmissionDetail";
 import { ArticleList } from "./pages/ArticleList";
 import { ArticleReader } from "./pages/ArticleReader";
+import { VerifyEmail } from "./pages/VerifyEmail";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
+import { OAuthSuccess } from "./pages/OAuthSuccess";
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
           <Route
             path="/dashboard"
             element={

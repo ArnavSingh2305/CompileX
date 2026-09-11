@@ -18,11 +18,17 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
       login(res.data.user, res.data.token);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(
+        err.response?.data?.message || "Login failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -34,7 +40,9 @@ export const Login = () => {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          Welcome Back
+        </h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
@@ -50,14 +58,22 @@ export const Login = () => {
           className="w-full border p-2 rounded mb-3"
           required
         />
+
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 rounded mb-4"
+          className="w-full border p-2 rounded mb-2"
           required
         />
+
+        <Link
+          to="/forgot-password"
+          className="text-xs text-blue-600 hover:underline block mb-4 text-right"
+        >
+          Forgot password?
+        </Link>
 
         <button
           type="submit"
@@ -67,9 +83,29 @@ export const Login = () => {
           {loading ? "Logging in..." : "Login"}
         </button>
 
+        <div className="flex items-center gap-2 my-4">
+          <div className="flex-1 h-px bg-slate-200" />
+
+          <span className="text-xs text-slate-400">
+            OR
+          </span>
+
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+
+        <a
+          href="http://localhost:5000/api/auth/google"
+          className="w-full flex items-center justify-center gap-2 border py-2 rounded hover:bg-slate-50 text-sm"
+        >
+          Continue with Google
+        </a>
+
         <p className="text-sm text-center mt-4">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link
+            to="/register"
+            className="text-blue-600 hover:underline"
+          >
             Register
           </Link>
         </p>

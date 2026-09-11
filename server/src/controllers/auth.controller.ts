@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../middleware/auth.middleware";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -242,4 +243,39 @@ export const googleCallback = (req: Request, res: Response) => {
   const user = req.user as any;
   const token = generateToken(user._id.toString());
   res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
+};
+
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const user = await User.findById(req.userId).select(
+      "_id name email isVerified authProviders createdAt"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isVerified: user.isVerified,
+      authProviders: user.authProviders,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error("Get current user error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
