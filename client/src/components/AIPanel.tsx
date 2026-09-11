@@ -1,5 +1,8 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { explainConcept, getHint, debugCode, explainComplexity } from "../api/ai";
 
 interface AIPanelProps {
@@ -67,7 +70,12 @@ export const AIPanel = ({ slug, code, language, lastErrorOutput }: AIPanelProps)
       {loading && <p className="text-sm text-slate-500">Thinking...</p>}
       {reply && (
         <div className="text-sm text-slate-700 prose prose-sm max-w-none">
-            <ReactMarkdown>{reply}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            >
+              {reply}
+            </ReactMarkdown>
         </div>
       )}
       {!mode && <p className="text-sm text-slate-400">Pick a mode above to get AI assistance.</p>}
