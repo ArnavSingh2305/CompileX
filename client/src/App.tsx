@@ -15,6 +15,7 @@ import { VerifyEmail } from "./pages/VerifyEmail";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPassword } from "./pages/ResetPassword";
 import { OAuthSuccess } from "./pages/OAuthSuccess";
+import { Leaderboard } from "./pages/Leaderboard";
 
 function App() {
   return (
@@ -71,6 +72,14 @@ function App() {
           />
           <Route path="/learn" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
           <Route path="/learn/:slug" element={<ProtectedRoute><ArticleReader /></ProtectedRoute>} />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

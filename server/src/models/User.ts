@@ -13,6 +13,8 @@ export interface IUser extends Document {
   githubId?: string;
   authProviders: string[]; // e.g. ["local", "google", "github"]
   createdAt: Date;
+  totalSolved: number;
+  totalPoints: number;
 }
 
 const UserSchema: Schema = new Schema({
@@ -28,6 +30,8 @@ const UserSchema: Schema = new Schema({
   githubId: { type: String },
   authProviders: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
+  totalSolved: { type: Number, default: 0 },
+  totalPoints: { type: Number, default: 0 },
 });
 
 export default mongoose.model<IUser>("User", UserSchema);

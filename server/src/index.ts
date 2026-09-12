@@ -13,7 +13,7 @@ import bookmarkRoutes from "./routes/bookmark.routes";
 import articleRoutes from "./routes/article.routes";
 import aiRoutes from "./routes/ai.routes";
 import passport from "./config/passport";
-
+import leaderboardRoutes from "./routes/leaderboard.routes";
 
 const app = express();
 
@@ -29,6 +29,7 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/articles", articleRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });

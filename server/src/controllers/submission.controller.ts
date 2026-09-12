@@ -3,6 +3,13 @@ import Problem from "../models/Problem";
 import Submission from "../models/Submission";
 import { executeCode } from "../services/execution";
 import { AuthRequest } from "../middleware/auth.middleware";
+import User from "../models/User";
+
+const POINTS_MAP: Record<string, number> = {
+  Easy: 10,
+  Medium: 25,
+  Hard: 50,
+};
 
 export const submitSolution = async (req: AuthRequest, res: Response) => {
   try {
@@ -71,9 +78,33 @@ export const submitSolution = async (req: AuthRequest, res: Response) => {
   });
 }
 
-if (status !== "Compilation Error" && status !== "Runtime Error") {
-  status = passedCount === problem.testCases.length ? "Accepted" : "Wrong Answer";
-}
+    if (status !== "Compilation Error" && status !== "Runtime Error") {
+      status =
+        passedCount === problem.testCases.length
+          ? "Accepted"
+          : "Wrong Answer";
+    }
+
+    let pointsAwarded = 0;
+
+    if (status === "Accepted") {
+      const previousAccepted = await Submission.findOne({
+        user: req.userId,
+        problem: problem._id,
+        status: "Accepted",
+      });
+
+      if (!previousAccepted) {
+        pointsAwarded = POINTS_MAP[problem.difficulty] || 0;
+
+        await User.findByIdAndUpdate(req.userId, {
+          $inc: {
+            totalSolved: 1,
+            totalPoints: pointsAwarded,
+          },
+        });
+      }
+    }
 
     await Submission.create({
       user: req.userId,
@@ -90,6 +121,7 @@ if (status !== "Compilation Error" && status !== "Runtime Error") {
       passedTestCases: passedCount,
       totalTestCases: problem.testCases.length,
       results,
+      pointsAwarded,
     });
   } catch (error: any) {
     console.error("Submission error:", error.message);

@@ -5,6 +5,8 @@ import { getUserStats } from "../api/stats";
 import type { UserStats } from "../api/stats";
 import { getSubmissionHistory } from "../api/submissions";
 import type { SubmissionHistoryItem } from "../api/submissions";
+import { getMyRank } from "../api/leaderboard";
+import type { MyRank } from "../api/leaderboard";
 
 const statusColor: Record<string, string> = {
   Accepted: "text-green-600",
@@ -20,7 +22,7 @@ export const Dashboard = () => {
   const [recentSubmissions, setRecentSubmissions] = useState<
     SubmissionHistoryItem[]
   >([]);
-
+  const [myRank, setMyRank] = useState<MyRank | null>(null);
   useEffect(() => {
     getUserStats()
       .then(setStats)
@@ -30,11 +32,21 @@ export const Dashboard = () => {
       .then((data) => setRecentSubmissions(data.slice(0, 5)))
       .catch(() => {});
   }, []);
-
+  useEffect(() => {
+    getMyRank()
+      .then(setMyRank)
+      .catch(() => {});
+  }, []);
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Welcome back, {user?.name}</h1>
-
+      {myRank && myRank.totalUsers > 0 && (
+        <Link to="/leaderboard" className="block bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6 hover:bg-yellow-100">
+          <p className="text-sm text-yellow-800">
+            🏆 Your Rank: <strong>#{myRank.rank} / {myRank.totalUsers}</strong> users
+          </p>
+        </Link>
+      )}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-white shadow rounded-lg p-4 text-center">
           <p className="text-sm text-slate-500">Problems Solved</p>
