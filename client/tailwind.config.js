@@ -38,8 +38,48 @@ export default {
         "gradient-dark":
           "linear-gradient(135deg, #080B16 0%, #150F2E 50%, #0B0E1A 100%)",
       },
+      keyframes: {
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-12px)",
+          },
+        },
+
+        "blob-move": {
+          "0%, 100%": {
+            transform: "translate(0, 0) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -40px) scale(1.05)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.97)",
+          },
+        },
+
+        "fade-up": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(16px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+      },
+
+      animation: {
+        float: "float 6s ease-in-out infinite",
+        "float-delayed": "float 6s ease-in-out 2s infinite",
+        blob: "blob-move 12s ease-in-out infinite",
+        "fade-up": "fade-up 0.6s ease-out forwards",
+      },
     },
   },
-
+  
   plugins: [],
 };

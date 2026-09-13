@@ -35,10 +35,14 @@ const AppShell = () => {
   const { token } = useAuth();
   const location = useLocation();
 
+  const isLandingPage = location.pathname === "/";
   const isAuthPage = AUTH_PAGES.includes(location.pathname);
 
-  const showSidebar = Boolean(token) && !isAuthPage;
-  const showPublicNavbar = !token && !isAuthPage;
+  const showSidebar =
+    Boolean(token) && !isAuthPage && !isLandingPage;
+
+  const showPublicNavbar =
+    (!token || isLandingPage) && !isAuthPage;
 
   return (
     <div className="flex min-h-screen">

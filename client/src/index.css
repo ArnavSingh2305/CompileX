@@ -11,7 +11,7 @@
 .dark {
   --bg-base: #080B16;
   --bg-card: rgba(21, 26, 48, 0.6);
-  --text-primary: #E5E7EB;
+  --text-primary: #F4F6FB;
 }
 
 html {
@@ -60,9 +60,10 @@ body {
 }
 
 /* Glass card foundation */
+
 .glass-card {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(150, 150, 180, 0.12);
+  border: 1px solid rgba(100, 100, 120, 0.18);
 }
