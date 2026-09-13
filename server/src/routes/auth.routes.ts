@@ -10,16 +10,26 @@ import {
 import passport from "passport";
 import { googleCallback } from "../controllers/auth.controller";
 import { protect } from "../middleware/auth.middleware";
+import { exchangeOAuthCode } from "../controllers/auth.controller";
+import { authLimiter } from "../middleware/rateLimit.middleware";
+import { body } from "express-validator";
+import { validate } from "../middleware/validate.middleware";
 
 const router = Router();
 
-router.post("/register", register);
-router.post("/login", login);
-router.get("/verify-email", verifyEmail);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
 
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
+router.get("/verify-email", verifyEmail);
+router.post("/forgot-password", authLimiter, forgotPassword);
+router.post("/reset-password", authLimiter, resetPassword);
+
+router.get(
+  "/google",
+  authLimiter,
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
+);
 
 router.get(
   "/google/callback",
@@ -27,5 +37,25 @@ router.get(
   googleCallback
 );
 router.get("/me", protect, getMe);
+router.post("/oauth/exchange", exchangeOAuthCode);
+router.post(
+  "/register",
+  authLimiter,
+  [
+    body("name").trim().isLength({ min: 2 }).withMessage("Name is required"),
+    body("email").isEmail().normalizeEmail().withMessage("Valid email required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  ],
+  validate,
+  register
+);
+
+router.post(
+  "/login",
+  authLimiter,
+  [body("email").isEmail().withMessage("Valid email required"), body("password").notEmpty()],
+  validate,
+  login
+);
 
 export default router;

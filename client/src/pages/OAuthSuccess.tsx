@@ -9,25 +9,21 @@ export const OAuthSuccess = () => {
   const { login } = useAuth();
 
   useEffect(() => {
-    const token = searchParams.get("token");
+    const code = searchParams.get("code");
 
-    if (!token) {
+    if (!code) {
       navigate("/login");
       return;
     }
 
-    // Store the JWT so the axios interceptor can authenticate /auth/me
-    localStorage.setItem("token", token);
-
     api
-      .get("/auth/me")
+      .post("/auth/oauth/exchange", { code })
       .then((res) => {
-        login(res.data, token);
+        login(res.data.user, res.data.token);
         navigate("/dashboard");
       })
       .catch((error) => {
         console.error("OAuth authentication failed:", error);
-        localStorage.removeItem("token");
         navigate("/login");
       });
   }, [navigate, searchParams, login]);

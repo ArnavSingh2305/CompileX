@@ -9,6 +9,14 @@ import {
   sendPasswordResetEmail,
 } from "../services/email.service";
 
+const oauthCodes = new Map<string, { userId: string; expiresAt: number }>();
+
+const createOAuthCode = (userId: string): string => {
+  const code = crypto.randomBytes(24).toString("hex");
+  oauthCodes.set(code, { userId, expiresAt: Date.now() + 60 * 1000 }); // 60 second window
+  return code;
+};
+
 const generateToken = (userId: string): string => {
   const secret = process.env.JWT_SECRET;
 
@@ -28,6 +36,12 @@ export const register = async (req: Request, res: Response) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "All fields are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
       });
     }
 
@@ -211,6 +225,12 @@ export const resetPassword = async (req: Request, res: Response) => {
       });
     }
 
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: new Date() },
@@ -241,15 +261,34 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 export const googleCallback = (req: Request, res: Response) => {
   const user = req.user as any;
-  const token = generateToken(user._id.toString());
-  res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
+  const code = createOAuthCode(user._id.toString());
+  res.redirect(`${process.env.CLIENT_URL}/oauth-success?code=${code}`);
+};
+
+export const exchangeOAuthCode = async (req: Request, res: Response) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ message: "Code is required" });
+
+  const entry = oauthCodes.get(code);
+  if (!entry || entry.expiresAt < Date.now()) {
+    oauthCodes.delete(code);
+    return res.status(400).json({ message: "Invalid or expired code" });
+  }
+
+  oauthCodes.delete(code); // one-time use — critical
+
+  const user = await User.findById(entry.userId).select("name email");
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const token = generateToken((user._id as any).toString());
+  res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email } });
 };
 
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) {
       return res.status(401).json({
-        message: "Unauthorized",
+        message: "Unauthorized",  
       });
     }
 

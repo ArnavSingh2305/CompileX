@@ -14,10 +14,27 @@ import articleRoutes from "./routes/article.routes";
 import aiRoutes from "./routes/ai.routes";
 import passport from "./config/passport";
 import leaderboardRoutes from "./routes/leaderboard.routes";
+import { errorHandler } from "./middleware/errorHandler.middleware";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(passport.initialize());
 
@@ -34,7 +51,7 @@ app.use("/api/leaderboard", leaderboardRoutes);
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });
 });
-
+app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {

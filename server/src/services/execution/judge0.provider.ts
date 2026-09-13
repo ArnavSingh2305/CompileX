@@ -33,16 +33,35 @@ export const executeWithJudge0 = async (
       source_code: encode(code),
       language_id: languageId,
       stdin: encode(stdin),
+
+      cpu_time_limit: 2,
+      wall_time_limit: 5,
+      memory_limit: 128000,
+      max_file_size: 5000,
     }
   );
 
   const data = response.data;
+  const MAX_OUTPUT_LENGTH = 10000;
+
+  const stdout = decode(data.stdout);
+  const stderr = decode(data.stderr);
+
+  const limitedStdout =
+    stdout.length > MAX_OUTPUT_LENGTH
+      ? stdout.slice(0, MAX_OUTPUT_LENGTH) + "\n[Output truncated]"
+      : stdout;
+
+  const limitedStderr =
+    stderr.length > MAX_OUTPUT_LENGTH
+      ? stderr.slice(0, MAX_OUTPUT_LENGTH) + "\n[Error output truncated]"
+      : stderr;
   const compileError =
     data.status.id === 6 ? decode(data.compile_output) : null;
 
   return {
-    stdout: decode(data.stdout),
-    stderr: decode(data.stderr),
+    stdout: limitedStdout,
+    stderr: limitedStderr,
     compileError,
     exitCode: data.status.id === 3 ? 0 : 1,
   };
