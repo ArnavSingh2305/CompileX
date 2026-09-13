@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { Navbar } from "./components/Navbar";
+
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
@@ -16,22 +16,47 @@ import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPassword } from "./pages/ResetPassword";
 import { OAuthSuccess } from "./pages/OAuthSuccess";
 import { Leaderboard } from "./pages/Leaderboard";
-import { ThemeProvider } from "./context/ThemeContext";
+import LandingPage from "./pages/LandingPage";
 
-function App() {
+import { ThemeProvider } from "./context/ThemeContext";
+import { PublicNavbar } from "./components/PublicNavbar";
+import { AppSidebar } from "./components/AppSidebar";
+
+const AUTH_PAGES = [
+  "/login",
+  "/register",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/oauth-success",
+];
+
+const AppShell = () => {
+  const { token } = useAuth();
+  const location = useLocation();
+
+  const isAuthPage = AUTH_PAGES.includes(location.pathname);
+
+  const showSidebar = Boolean(token) && !isAuthPage;
+  const showPublicNavbar = !token && !isAuthPage;
+
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-      <AuthProvider>
-        <Navbar />
+    <div className="flex min-h-screen">
+      {showSidebar && <AppSidebar />}
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {showPublicNavbar && <PublicNavbar />}
+
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<LandingPage />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
+
           <Route
             path="/dashboard"
             element={
@@ -40,6 +65,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/code-lab"
             element={
@@ -48,6 +74,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/problems"
             element={
@@ -56,6 +83,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/problems/:slug"
             element={
@@ -64,6 +92,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/submissions/:id"
             element={
@@ -72,8 +101,25 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/learn" element={<ProtectedRoute><ArticleList /></ProtectedRoute>} />
-          <Route path="/learn/:slug" element={<ProtectedRoute><ArticleReader /></ProtectedRoute>} />
+
+          <Route
+            path="/learn"
+            element={
+              <ProtectedRoute>
+                <ArticleList />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/learn/:slug"
+            element={
+              <ProtectedRoute>
+                <ArticleReader />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/leaderboard"
             element={
@@ -83,7 +129,18 @@ function App() {
             }
           />
         </Routes>
-      </AuthProvider>
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   );
