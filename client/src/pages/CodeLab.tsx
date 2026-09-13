@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { runCode } from "../api/compiler";
 import type { RunResult } from "../api/compiler";
 import { DEFAULT_CODE, LANGUAGE_OPTIONS } from "../constants/defaultCode";
-import { useLocation } from "react-router-dom";
+import { ScrollReveal } from "../components/ScrollReveal";
 
 export const CodeLab = () => {
   const location = useLocation();
   const prefill = location.state as { prefillCode?: string; prefillLanguage?: string } | null;
+
   const [language, setLanguage] = useState(prefill?.prefillLanguage || "cpp");
   const [code, setCode] = useState(prefill?.prefillCode || DEFAULT_CODE[prefill?.prefillLanguage || "cpp"]);
   const [stdin, setStdin] = useState("");
@@ -19,6 +21,13 @@ export const CodeLab = () => {
     setLanguage(newLang);
     setCode(DEFAULT_CODE[newLang]);
     setResult(null);
+  };
+
+  const handleClear = () => {
+    setCode(DEFAULT_CODE[language]);
+    setStdin("");
+    setResult(null);
+    setError("");
   };
 
   const handleRun = async () => {
@@ -38,90 +47,109 @@ export const CodeLab = () => {
   const currentLangConfig = LANGUAGE_OPTIONS.find((l) => l.value === language);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Code Lab</h1>
-        <div className="flex gap-3 items-center">
-          <select
-            value={language}
-            onChange={(e) => handleLanguageChange(e.target.value)}
-            className="border rounded px-3 py-2"
-          >
-            {LANGUAGE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={handleRun}
-            disabled={loading}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded disabled:opacity-50"
-          >
-            {loading ? "Running..." : "Run"}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-ivory dark:bg-navy-950 p-8">
+      <div className="max-w-4xl mx-auto">
+        <ScrollReveal>
+          <h1 className="text-3xl font-bold mb-1">Code Lab</h1>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">Write, run and test code in real time.</p>
+        </ScrollReveal>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border rounded overflow-hidden">
-          <Editor
-            height="500px"
-            language={currentLangConfig?.monacoLang || "cpp"}
-            value={code}
-            onChange={(value) => setCode(value || "")}
-            theme="vs-dark"
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              automaticLayout: true,
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Input (stdin)</label>
-            <textarea
-              value={stdin}
-              onChange={(e) => setStdin(e.target.value)}
-              className="w-full border rounded p-2 h-24 font-mono text-sm"
-              placeholder="Enter input here if your program needs it"
+        <ScrollReveal delay={100}>
+          <div className="glass-card rounded-2xl overflow-hidden mb-4">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-slate-200/60 dark:border-white/5">
+              <select
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="bg-transparent text-sm font-medium text-navy-900 dark:text-white focus:outline-none"
+              >
+               {LANGUAGE_OPTIONS.map((opt) => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    className="bg-white text-navy-900 dark:bg-navy-900 dark:text-white"
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleClear}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleRun}
+                  disabled={loading}
+                  className="px-4 py-1.5 rounded-lg bg-gradient-brand text-white text-xs font-medium hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-transform flex items-center gap-1.5"
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Running
+                    </>
+                  ) : (
+                    <>▶ Run</>
+                  )}
+                </button>
+              </div>
+            </div>
+            <Editor
+              height="420px"
+              language={currentLangConfig?.monacoLang || "cpp"}
+              value={code}
+              onChange={(value) => setCode(value || "")}
+              theme="vs-dark"
+              options={{ fontSize: 14, minimap: { enabled: false }, automaticLayout: true }}
             />
           </div>
+        </ScrollReveal>
 
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Output</label>
-            <div className="bg-slate-900 text-slate-100 rounded p-4 h-64 overflow-auto font-mono text-sm whitespace-pre-wrap">
-              {error && <span className="text-red-400">{error}</span>}
+        <ScrollReveal delay={150}>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="glass-card rounded-xl overflow-hidden">
+              <p className="text-xs font-medium text-slate-500 px-4 py-2 border-b border-slate-200/60 dark:border-white/5">Input</p>
+              <textarea
+                value={stdin}
+                onChange={(e) => setStdin(e.target.value)}
+                className="w-full h-32 p-4 bg-transparent font-mono text-sm resize-none focus:outline-none placeholder:text-slate-400"
+                placeholder="Enter input here if your program needs it"
+              />
+            </div>
 
-              {result?.compileError && (
-                <span className="text-red-400">
-                  Compilation Error{"\n"}
-                  {result.compileError}
-                </span>
-              )}
+            <div className="glass-card rounded-xl overflow-hidden">
+              <p className="text-xs font-medium text-slate-500 px-4 py-2 border-b border-slate-200/60 dark:border-white/5">Output</p>
+              <div className="h-32 p-4 font-mono text-sm overflow-y-auto">
+                {error && <span className="text-red-500">{error}</span>}
 
-              {result && !result.compileError && (
-                <>
-                  {result.stdout && <span className="text-green-400">{result.stdout}</span>}
-                  {result.stderr && (
-                    <span className="text-yellow-400">
-                      {"\n"}{result.stderr}
-                    </span>
-                  )}
-                  {!result.stdout && !result.stderr && (
-                    <span className="text-slate-500">Program ran with no output</span>
-                  )}
-                </>
-              )}
+                {result?.compileError && (
+                  <span className="text-red-500 whitespace-pre-wrap">
+                    Compilation Error{"\n"}{result.compileError}
+                  </span>
+                )}
 
-              {!result && !error && !loading && (
-                <span className="text-slate-500">Click Run to see output</span>
-              )}
+                {result && !result.compileError && (
+                  <>
+                    {result.stdout && <span className="text-green-500 whitespace-pre-wrap">{result.stdout}</span>}
+                    {result.stderr && (
+                      <span className="text-yellow-500 whitespace-pre-wrap">{"\n"}{result.stderr}</span>
+                    )}
+                    {!result.stdout && !result.stderr && (
+                      <span className="text-slate-400">Program ran with no output</span>
+                    )}
+                  </>
+                )}
+
+                {!result && !error && !loading && (
+                  <span className="text-slate-400">Click Run to see output</span>
+                )}
+
+                {loading && <span className="text-slate-400">Running your code...</span>}
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </div>
   );
