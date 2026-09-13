@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-base: #FDF9F6;
+  --bg-card: #FFFCFA;
+  --text-primary: #0B0E1A;
+}
+
+.dark {
+  --bg-base: #080B16;
+  --bg-card: rgba(21, 26, 48, 0.6);
+  --text-primary: #E5E7EB;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Subtle technical grid */
+.bg-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(120, 120, 140, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(120, 120, 140, 0.06) 1px,
+      transparent 1px
+    );
+  background-size: 40px 40px;
+}
+
+.dark .bg-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(160, 160, 220, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(160, 160, 220, 0.06) 1px,
+      transparent 1px
+    );
+  background-size: 40px 40px;
+}
+
+/* Glass card foundation */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(150, 150, 180, 0.12);
+}

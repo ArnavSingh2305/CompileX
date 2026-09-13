@@ -16,10 +16,12 @@ import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPassword } from "./pages/ResetPassword";
 import { OAuthSuccess } from "./pages/OAuthSuccess";
 import { Leaderboard } from "./pages/Leaderboard";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   return (
     <BrowserRouter>
+      <ThemeProvider>
       <AuthProvider>
         <Navbar />
         <Routes>
@@ -82,6 +84,7 @@ function App() {
           />
         </Routes>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

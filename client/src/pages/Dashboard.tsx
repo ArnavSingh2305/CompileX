@@ -8,6 +8,7 @@ import type { SubmissionHistoryItem } from "../api/submissions";
 import { getMyRank } from "../api/leaderboard";
 import type { MyRank } from "../api/leaderboard";
 
+
 const statusColor: Record<string, string> = {
   Accepted: "text-green-600",
   "Wrong Answer": "text-red-600",
@@ -23,6 +24,7 @@ export const Dashboard = () => {
     SubmissionHistoryItem[]
   >([]);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
+  
   useEffect(() => {
     getUserStats()
       .then(setStats)
