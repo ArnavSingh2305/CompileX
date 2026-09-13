@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +25,7 @@ export const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { mode, setMode } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -89,7 +91,21 @@ export const AppSidebar = () => {
           <Settings size={18} strokeWidth={1.8} />
             Settings
         </Link>
-
+                <div className="flex gap-1 px-3 py-1">
+        {(["light", "dark", "system"] as const).map((m) => (
+            <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`flex-1 text-xs py-1.5 rounded ${
+                mode === m
+                ? "bg-gradient-brand text-white"
+                : "bg-slate-100 dark:bg-white/5 text-slate-500"
+            }`}
+            >
+            {m === "light" ? "☀️" : m === "dark" ? "🌙" : "💻"}
+            </button>
+        ))}
+        </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition text-left"

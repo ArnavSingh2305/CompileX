@@ -7,13 +7,16 @@ import { getSubmissionHistory } from "../api/submissions";
 import type { SubmissionHistoryItem } from "../api/submissions";
 import { getMyRank } from "../api/leaderboard";
 import type { MyRank } from "../api/leaderboard";
-
+import { CountUp } from "../components/CountUp";
+import { ScrollReveal } from "../components/ScrollReveal";
+import { DifficultyRadialChart } from "../components/DifficultyRadialChart";
+import { TopicHeatmap } from "../components/TopicHeatmap";
 
 const statusColor: Record<string, string> = {
-  Accepted: "text-green-600",
-  "Wrong Answer": "text-red-600",
-  "Compilation Error": "text-orange-600",
-  "Runtime Error": "text-orange-600",
+  Accepted: "text-green-600 dark:text-green-400",
+  "Wrong Answer": "text-red-600 dark:text-red-400",
+  "Compilation Error": "text-orange-600 dark:text-orange-400",
+  "Runtime Error": "text-orange-600 dark:text-orange-400",
 };
 
 export const Dashboard = () => {
@@ -24,133 +27,236 @@ export const Dashboard = () => {
     SubmissionHistoryItem[]
   >([]);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
-  
+
   useEffect(() => {
     getUserStats()
       .then(setStats)
       .catch(() => {});
 
     getSubmissionHistory()
-      .then((data) => setRecentSubmissions(data.slice(0, 5)))
+      .then((d) => setRecentSubmissions(d.slice(0, 5)))
       .catch(() => {});
-  }, []);
-  useEffect(() => {
+
     getMyRank()
       .then(setMyRank)
       .catch(() => {});
   }, []);
+
+  const greeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Welcome back, {user?.name}</h1>
-      {myRank && myRank.totalUsers > 0 && (
-        <Link to="/leaderboard" className="block bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6 hover:bg-yellow-100">
-          <p className="text-sm text-yellow-800">
-            🏆 Your Rank: <strong>#{myRank.rank} / {myRank.totalUsers}</strong> users
-          </p>
-        </Link>
-      )}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-sm text-slate-500">Problems Solved</p>
-          <p className="text-2xl font-bold">{stats?.problemsSolved ?? "—"}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-sm text-slate-500">Submissions</p>
-          <p className="text-2xl font-bold">{stats?.totalSubmissions ?? "—"}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-sm text-slate-500">Current Streak</p>
-          <p className="text-2xl font-bold">
-            {stats?.currentStreak ? `🔥 ${stats.currentStreak}` : "0"}
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-ivory dark:bg-navy-950 bg-grid p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Greeting */}
+        <ScrollReveal>
+          <h1 className="text-3xl font-bold mb-1">
+            {greeting()},{" "}
+            <span className="bg-gradient-brand bg-clip-text text-transparent">
+              {user?.name}
+            </span>{" "}
+            👋
+          </h1>
 
-      {stats && (
-        <>
-          <div className="bg-white shadow rounded-lg p-4 mb-6">
-            <h2 className="font-semibold mb-3">Difficulty Breakdown</h2>
-            <div className="space-y-2">
-              {(["easy", "medium", "hard"] as const).map((diff) => {
-                const d = stats.difficultyBreakdown[diff];
-                const pct = d.total > 0 ? (d.solved / d.total) * 100 : 0;
-                const color = diff === "easy" ? "bg-green-500" : diff === "medium" ? "bg-yellow-500" : "bg-red-500";
-                return (
-                  <div key={diff}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="capitalize">{diff}</span>
-                      <span>{d.solved} / {d.total}</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded h-2">
-                      <div className={`h-2 rounded ${color}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+          <p className="text-slate-500 dark:text-slate-400 mb-8">
+            Keep practicing. Consistency beats intensity.
+          </p>
+        </ScrollReveal>
+
+        {/* Top stat cards */}
+        <ScrollReveal delay={100}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="glass-card rounded-xl p-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Problems Solved
+              </p>
+
+              <p className="text-2xl font-bold">
+                <CountUp end={stats?.problemsSolved ?? 0} />
+              </p>
             </div>
-          </div>
 
-          <div className="bg-white shadow rounded-lg p-4 mb-6">
-            <h2 className="font-semibold mb-3">Topic Progress</h2>
-            <div className="space-y-2">
-              {stats.topicProgress.map((tp) => (
-                <div key={tp.topic}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{tp.topic}</span>
-                    <span>{tp.solved} / {tp.total}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded h-2">
-                    <div className="h-2 rounded bg-blue-500" style={{ width: `${tp.percentage}%` }} />
+            <div className="glass-card rounded-xl p-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Submissions
+              </p>
+
+              <p className="text-2xl font-bold">
+                <CountUp end={stats?.totalSubmissions ?? 0} />
+              </p>
+            </div>
+
+            <div className="glass-card rounded-xl p-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Current Streak
+              </p>
+
+              <p className="text-2xl font-bold">
+                {stats?.currentStreak
+                  ? `🔥 ${stats.currentStreak}`
+                  : "0"}
+              </p>
+            </div>
+
+            <Link
+              to="/leaderboard"
+              className="glass-card rounded-xl p-4 hover:-translate-y-0.5 transition-transform"
+            >
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Global Rank
+              </p>
+
+              <p className="text-2xl font-bold">
+                {myRank ? `#${myRank.rank}` : "—"}
+              </p>
+            </Link>
+          </div>
+        </ScrollReveal>
+
+        {/* Difficulty + Topic */}
+        {stats && (
+          <ScrollReveal delay={200}>
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              {/* Difficulty Distribution */}
+              <div className="glass-card rounded-2xl p-5">
+                <h2 className="font-semibold mb-4">
+                  Difficulty Distribution
+                </h2>
+
+                <div className="flex items-center gap-6">
+                  <DifficultyRadialChart
+                    easy={stats.difficultyBreakdown.easy}
+                    medium={stats.difficultyBreakdown.medium}
+                    hard={stats.difficultyBreakdown.hard}
+                  />
+
+                  <div className="space-y-2 text-sm">
+                    {(
+                      ["easy", "medium", "hard"] as const
+                    ).map((d) => {
+                      const dot =
+                        d === "easy"
+                          ? "bg-green-500"
+                          : d === "medium"
+                            ? "bg-yellow-500"
+                            : "bg-red-500";
+
+                      const data = stats.difficultyBreakdown[d];
+
+                      return (
+                        <div
+                          key={d}
+                          className="flex items-center gap-2"
+                        >
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full ${dot}`}
+                          />
+
+                          <span className="capitalize w-16">
+                            {d}
+                          </span>
+
+                          <span className="text-slate-500">
+                            {data.solved}/{data.total}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {stats.weakTopics.length > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-              <h2 className="font-semibold mb-2 text-orange-800">Weak Topics</h2>
+              {/* Topic Proficiency */}
+              <div className="glass-card rounded-2xl p-5">
+                <h2 className="font-semibold mb-4">
+                  Topic Proficiency
+                </h2>
+
+                <TopicHeatmap topics={stats.topicProgress} />
+              </div>
+            </div>
+          </ScrollReveal>
+        )}
+
+        {/* Weak Topics */}
+        {stats && stats.weakTopics.length > 0 && (
+          <ScrollReveal delay={250}>
+            <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-2xl p-4 mb-8">
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">
+                Weak Topics — worth revisiting
+              </p>
+
               <div className="flex gap-2 flex-wrap">
                 {stats.weakTopics.map((topic) => (
                   <Link
                     key={topic}
-                    to={`/problems?topic=${encodeURIComponent(topic)}`}
-                    className="text-sm bg-white border border-orange-300 text-orange-700 px-3 py-1 rounded hover:bg-orange-100"
+                    to={`/problems?topic=${encodeURIComponent(
+                      topic
+                    )}`}
+                    className="text-sm bg-white dark:bg-navy-900 border border-orange-300 dark:border-orange-500/30 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full hover:scale-105 transition-transform"
                   >
                     {topic}
                   </Link>
                 ))}
               </div>
             </div>
-          )}
-        </>
-      )}
+          </ScrollReveal>
+        )}
 
-      <h2 className="text-xl font-semibold mb-3">Recent Submissions</h2>
-      {recentSubmissions.length === 0 ? (
-        <p className="text-slate-500">
-          No submissions yet — head to{" "}
-          <Link to="/problems" className="text-blue-600 hover:underline">DSA</Link> to get started.
-        </p>
-      ) : (
-        <div className="bg-white shadow rounded-lg divide-y">
-          {recentSubmissions.map((sub) => (
-            <Link
-              key={sub._id}
-              to={`/submissions/${sub._id}`}
-              className="flex justify-between items-center p-3 hover:bg-slate-50"
-            >
-              <div>
-                <p className="font-medium">{sub.problem.title}</p>
-                <p className="text-xs text-slate-500">{sub.language} · {new Date(sub.createdAt).toLocaleString()}</p>
-              </div>
-              <span className={`text-sm font-medium ${statusColor[sub.status] || ""}`}>
-                {sub.status}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
+        {/* Recent Submissions */}
+        <ScrollReveal delay={300}>
+          <h2 className="text-xl font-semibold mb-3">
+            Recent Submissions
+          </h2>
+
+          {recentSubmissions.length === 0 ? (
+            <p className="text-slate-500">
+              No submissions yet — head to{" "}
+              <Link
+                to="/problems"
+                className="text-accent-purple hover:underline"
+              >
+                Problems
+              </Link>{" "}
+              to get started.
+            </p>
+          ) : (
+            <div className="glass-card rounded-2xl divide-y divide-slate-200/60 dark:divide-white/5">
+              {recentSubmissions.map((sub) => (
+                <Link
+                  key={sub._id}
+                  to={`/submissions/${sub._id}`}
+                  className="flex justify-between items-center p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition rounded-2xl"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {sub.problem.title}
+                    </p>
+
+                    <p className="text-xs text-slate-500">
+                      {sub.language} ·{" "}
+                      {new Date(sub.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`text-sm font-medium ${
+                      statusColor[sub.status] || ""
+                    }`}
+                  >
+                    {sub.status}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </ScrollReveal>
+      </div>
     </div>
   );
 };

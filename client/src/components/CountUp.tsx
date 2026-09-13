@@ -16,6 +16,11 @@ export const CountUp = ({
   const started = useRef(false);
 
   useEffect(() => {
+    if (end === 0) {
+      setValue(0);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
