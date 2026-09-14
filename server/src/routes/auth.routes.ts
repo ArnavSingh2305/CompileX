@@ -14,6 +14,7 @@ import { exchangeOAuthCode } from "../controllers/auth.controller";
 import { authLimiter } from "../middleware/rateLimit.middleware";
 import { body } from "express-validator";
 import { validate } from "../middleware/validate.middleware";
+import { changePassword } from "../controllers/auth.controller";
 
 const router = Router();
 
@@ -57,5 +58,5 @@ router.post(
   validate,
   login
 );
-
+router.post("/change-password", protect, changePassword);
 export default router;

@@ -21,6 +21,8 @@ import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "./context/ThemeContext";
 import { PublicNavbar } from "./components/PublicNavbar";
 import { AppSidebar } from "./components/AppSidebar";
+import { Profile } from "./pages/Profile";
+import { Settings } from "./pages/Settings";
 
 const AUTH_PAGES = [
   "/login",
@@ -132,6 +134,8 @@ const AppShell = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>

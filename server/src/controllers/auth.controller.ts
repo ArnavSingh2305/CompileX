@@ -318,3 +318,43 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        message: "New password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findById(req.userId);
+
+    if (!user || !user.password) {
+      return res.status(400).json({
+        message: "Password change not available for this account",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

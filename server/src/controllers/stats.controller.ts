@@ -112,3 +112,25 @@ export const getUserStats = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+export const getActivityHeatmap = async (req: AuthRequest, res: Response) => {
+  try {
+    const oneYearAgo = new Date();
+    oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+
+    const submissions = await Submission.find({
+      user: req.userId,
+      createdAt: { $gte: oneYearAgo },
+    }).select("createdAt");
+
+    const counts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      const key = s.createdAt.toISOString().split("T")[0];
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+    res.status(200).json(counts);
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
