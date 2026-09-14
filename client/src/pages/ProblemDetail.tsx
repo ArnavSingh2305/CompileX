@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { useEditorSettings } from "../hooks/useEditorSettings";
 
 import {
   getProblemBySlug,
@@ -61,7 +62,7 @@ export const ProblemDetail = () => {
 
   const [problemSubmissions, setProblemSubmissions] = useState<SubmissionHistoryItem[]>([]);
   const [bookmarked, setBookmarked] = useState(false);
-
+  const editorSettings = useEditorSettings();
   useEffect(() => {
     if (!slug) return;
     getProblemBySlug(slug)
@@ -275,7 +276,13 @@ export const ProblemDetail = () => {
             value={code}
             onChange={(v) => setCode(v || "")}
             theme="vs-dark"
-            options={{ fontSize: 14, minimap: { enabled: false }, automaticLayout: true }}
+            options={{
+              fontSize: editorSettings.fontSize,
+              tabSize: editorSettings.tabSize,
+              wordWrap: editorSettings.wordWrap ? "on" : "off",
+              minimap: { enabled: false },
+              automaticLayout: true,
+            }}
           />
         </div>
 

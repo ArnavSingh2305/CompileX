@@ -5,18 +5,19 @@ import { runCode } from "../api/compiler";
 import type { RunResult } from "../api/compiler";
 import { DEFAULT_CODE, LANGUAGE_OPTIONS } from "../constants/defaultCode";
 import { ScrollReveal } from "../components/ScrollReveal";
+import { useEditorSettings } from "../hooks/useEditorSettings";
 
 export const CodeLab = () => {
   const location = useLocation();
   const prefill = location.state as { prefillCode?: string; prefillLanguage?: string } | null;
-
+  const editorSettings = useEditorSettings();
   const [language, setLanguage] = useState(prefill?.prefillLanguage || "cpp");
   const [code, setCode] = useState(prefill?.prefillCode || DEFAULT_CODE[prefill?.prefillLanguage || "cpp"]);
   const [stdin, setStdin] = useState("");
   const [result, setResult] = useState<RunResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  
   const handleLanguageChange = (newLang: string) => {
     setLanguage(newLang);
     setCode(DEFAULT_CODE[newLang]);
@@ -101,7 +102,13 @@ export const CodeLab = () => {
               value={code}
               onChange={(value) => setCode(value || "")}
               theme="vs-dark"
-              options={{ fontSize: 14, minimap: { enabled: false }, automaticLayout: true }}
+              options={{
+                fontSize: editorSettings.fontSize,
+                tabSize: editorSettings.tabSize,
+                wordWrap: editorSettings.wordWrap ? "on" : "off",
+                minimap: { enabled: false },
+                automaticLayout: true,
+              }}
             />
           </div>
         </ScrollReveal>
