@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { AuthLayout } from "../components/AuthLayout";
+import type { FormEvent } from "react";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,104 +14,82 @@ export const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const res = await api.post("/auth/login", {
-        email,
-        password,
-      });
-
+      const res = await api.post("/auth/login", { email, password });
       login(res.data.user, res.data.token);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Login failed"
-      );
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Welcome Back
-        </h2>
+    <AuthLayout>
+      <div className="w-full max-w-sm animate-fade-up">
+        <h1 className="text-2xl font-bold mb-1">Welcome Back</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Continue your coding journey</p>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+          <div className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 text-sm">
             {error}
           </div>
         )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 rounded mb-3"
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full glass-card rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-purple/40 transition"
+            required
+          />
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full glass-card rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-purple/40 transition"
+              required
+            />
+            <Link to="/forgot-password" className="text-xs text-accent-purple hover:underline block mt-2 text-right">
+              Forgot password?
+            </Link>
+          </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 rounded mb-2"
-          required
-        />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-brand text-white py-3 rounded-xl font-medium hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-transform"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
 
-        <Link
-          to="/forgot-password"
-          className="text-xs text-blue-600 hover:underline block mb-4 text-right"
-        >
-          Forgot password?
-        </Link>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded disabled:opacity-50"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-
-        <div className="flex items-center gap-2 my-4">
-          <div className="flex-1 h-px bg-slate-200" />
-
-          <span className="text-xs text-slate-400">
-            OR
-          </span>
-
-          <div className="flex-1 h-px bg-slate-200" />
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
+          <span className="text-xs text-slate-400">OR</span>
+          <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
         </div>
 
         <a
           href="http://localhost:5000/api/auth/google"
-          className="w-full flex items-center justify-center gap-2 border py-2 rounded hover:bg-slate-50 text-sm"
+          className="w-full flex items-center justify-center gap-2 glass-card py-3 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5 transition"
         >
           Continue with Google
         </a>
 
-        <p className="text-sm text-center mt-4">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-blue-600 hover:underline"
-          >
-            Register
-          </Link>
+        <p className="text-sm text-center mt-6 text-slate-500">
+          Don't have an account? <Link to="/register" className="text-accent-purple font-medium hover:underline">Register</Link>
         </p>
-      </form>
-    </div>
+      </div>
+    </AuthLayout>
   );
 };
