@@ -98,7 +98,7 @@ export const Register = () => {
         </div>
 
         <a
-          href="http://localhost:5000/api/auth/google"
+          href={`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/google`}
           className="w-full flex items-center justify-center gap-2 glass-card py-3 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5 transition"
         >
           Continue with Google
