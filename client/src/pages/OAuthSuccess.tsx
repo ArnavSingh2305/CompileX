@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
@@ -8,13 +8,19 @@ export const OAuthSuccess = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const exchangedRef = useRef(false);
+
   useEffect(() => {
+    if (exchangedRef.current) return;
+
     const code = searchParams.get("code");
 
     if (!code) {
       navigate("/login");
       return;
     }
+
+    exchangedRef.current = true;
 
     api
       .post("/auth/oauth/exchange", { code })
