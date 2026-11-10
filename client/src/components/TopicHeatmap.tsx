@@ -1,61 +1,33 @@
 import type { TopicProgress } from "../api/stats";
 
-const intensityColor = (percentage: number): string => {
-  if (percentage === 0) {
-    return "bg-slate-100 dark:bg-white/5";
-  }
-
-  if (percentage < 25) {
-    return "bg-pink-100 dark:bg-pink-500/20";
-  }
-
-  if (percentage < 50) {
-    return "bg-pink-300 dark:bg-pink-500/40";
-  }
-
-  if (percentage < 75) {
-    return "bg-pink-400 dark:bg-pink-500/60";
-  }
-
-  return "bg-pink-600 dark:bg-pink-500";
+const intensityClass = (percentage: number): string => {
+  if (percentage === 0) return "bg-fg/[0.05]";
+  if (percentage < 25) return "bg-accent/15";
+  if (percentage < 50) return "bg-accent/30";
+  if (percentage < 75) return "bg-accent/50";
+  return "bg-accent";
 };
 
-export const TopicHeatmap = ({
-  topics,
-}: {
-  topics: TopicProgress[];
-}) => {
+export const TopicHeatmap = ({ topics }: { topics: TopicProgress[] }) => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      {topics.map((t) => (
-        <div
-          key={t.topic}
-          className={`rounded-lg p-3 ${intensityColor(
-            t.percentage
-          )} transition-colors`}
-          title={`${t.solved}/${t.total} solved`}
-        >
-          <p
-            className={`text-xs font-medium truncate ${
-              t.percentage >= 50
-                ? "text-white"
-                : "text-navy-900 dark:text-slate-200"
-            }`}
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {topics.map((t) => {
+        const solid = t.percentage >= 75;
+        return (
+          <div
+            key={t.topic}
+            className={`rounded-md px-2.5 py-2 transition-colors ${intensityClass(t.percentage)}`}
+            title={`${t.solved}/${t.total} solved`}
           >
-            {t.topic}
-          </p>
-
-          <p
-            className={`text-[10px] mt-0.5 ${
-              t.percentage >= 50
-                ? "text-white/80"
-                : "text-slate-500 dark:text-slate-400"
-            }`}
-          >
-            {t.solved}/{t.total}
-          </p>
-        </div>
-      ))}
+            <p className={`line-clamp-2 text-xs font-medium leading-4 ${solid ? "text-accent-fg" : "text-fg"}`}>
+              {t.topic}
+            </p>
+            <p className={`mt-0.5 text-[11px] ${solid ? "text-accent-fg/80" : "text-fg/55"}`}>
+              {t.solved}/{t.total}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 };

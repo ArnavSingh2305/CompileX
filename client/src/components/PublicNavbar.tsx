@@ -1,64 +1,43 @@
 import { Link } from "react-router-dom";
+import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 
-export const PublicNavbar = () => {
-  return (
-    <nav className="sticky top-0 z-40 bg-white/70 dark:bg-navy-950/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-bold text-lg text-navy-900 dark:text-white"
-        >
-          <span className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm">
-            {"</>"}
-          </span>
+const links = [
+  { to: "/problems", label: "Problems" },
+  { to: "/learn", label: "Learn" },
+  { to: "/code-lab", label: "Code Lab" },
+];
 
+export const PublicNavbar = () => (
+  <header className="sticky top-0 z-40 border-b border-fg/[0.08] bg-bg/85 backdrop-blur">
+    <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+      <div className="flex items-center gap-6">
+        <Link to="/" className="flex items-center gap-2 font-semibold">
+          <Logo size={24} />
           CompileX
         </Link>
-
-        {/* Main Navigation */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
-          <Link
-            to="/problems"
-            className="hover:text-navy-900 dark:hover:text-white transition-colors duration-200"
-          >
-            Problems
-          </Link>
-
-          <Link
-            to="/learn"
-            className="hover:text-navy-900 dark:hover:text-white transition-colors duration-200"
-          >
-            Learn
-          </Link>
-
-          <Link
-            to="/code-lab"
-            className="hover:text-navy-900 dark:hover:text-white transition-colors duration-200"
-          >
-            Code Lab
-          </Link>
-        </div>
-
-        {/* Auth Actions */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="text-sm font-medium px-4 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/register"
-            className="text-sm font-medium px-4 py-2.5 rounded-lg bg-navy-900 text-white dark:bg-white dark:text-navy-900 hover:opacity-90 transition-all duration-200"
-          >
-            Get Started
-          </Link>
-        </div>
-
+        <nav className="hidden items-center gap-1 md:flex">
+          {links.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-fg/65 transition-colors hover:bg-fg/5 hover:text-fg"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
       </div>
-    </nav>
-  );
-};
+
+      <div className="flex items-center gap-1.5">
+        <ThemeToggle />
+        <Link to="/login" className="btn btn-ghost">
+          Login
+        </Link>
+        <Link to="/register" className="btn btn-primary">
+          Get Started
+        </Link>
+      </div>
+    </div>
+  </header>
+);

@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import Editor from "@monaco-editor/react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getArticleBySlug } from "../api/articles";
 import type { ArticleDetail } from "../api/articles";
 import { ScrollReveal } from "../components/ScrollReveal";
-
-const difficultyStyle: Record<string, string> = {
-  Easy: "text-green-600 bg-green-50 dark:bg-green-500/10 dark:text-green-400",
-  Medium: "text-yellow-600 bg-yellow-50 dark:bg-yellow-500/10 dark:text-yellow-400",
-  Hard: "text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400",
-};
+import { useTheme } from "../context/ThemeContext";
+import { defineEditorThemes, editorThemeName } from "../lib/monacoThemes";
+import { Tag } from "../components/ui/Tag";
+import { categoryTone, difficultyTone } from "../components/ui/tones";
 
 export const ArticleReader = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [article, setArticle] = useState<ArticleDetail | null>(null);
 
   useEffect(() => {
@@ -26,64 +26,88 @@ export const ArticleReader = () => {
     navigate("/code-lab", { state: { prefillCode: code, prefillLanguage: language } });
   };
 
-  if (!article) return <div className="p-8 text-slate-400">Loading...</div>;
+  if (!article) {
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-3 px-5 py-16 md:px-12">
+        <div className="skeleton h-4 w-24" />
+        <div className="skeleton h-10 w-2/3" />
+        <div className="skeleton h-4 w-full" />
+        <div className="skeleton h-4 w-5/6" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-ivory dark:bg-navy-950 p-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="w-full">
+      <div className="mx-auto max-w-3xl px-5 pb-24 pt-10 md:px-12 md:pt-16">
         <ScrollReveal>
-          <Link to="/learn" className="text-accent-purple hover:underline text-sm">← Back to Learn</Link>
+          <Link
+            to="/learn"
+            className="inline-flex items-center gap-1.5 text-sm text-fg/55 transition-colors hover:text-fg"
+          >
+            <ArrowLeft size={14} />
+            Back to Learn
+          </Link>
 
-          <span className="inline-block text-xs bg-slate-100 dark:bg-white/5 text-slate-500 px-2.5 py-1 rounded-full mt-4 mb-2">
-            {article.category}
-          </span>
-          <h1 className="text-3xl font-bold mb-6">{article.title}</h1>
+          <div className="mt-6">
+            <Tag tone={categoryTone(article.category)}>{article.category}</Tag>
+          </div>
+          <h1 className="mb-8 mt-3 text-4xl font-bold leading-tight tracking-tight">
+            {article.title}
+          </h1>
         </ScrollReveal>
 
-        <ScrollReveal delay={100}>
-          <article className="prose dark:prose-invert max-w-none mb-8 prose-headings:font-semibold prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed">
+        <ScrollReveal delay={50}>
+          <article className="prose prose-notion mb-10 max-w-none leading-relaxed">
             <ReactMarkdown>{article.content}</ReactMarkdown>
           </article>
         </ScrollReveal>
 
         {article.codeExamples.map((ex, i) => (
-          <ScrollReveal key={i} delay={150}>
-            <div className="mb-6">
-              {ex.caption && <p className="text-sm text-slate-400 mb-2">{ex.caption}</p>}
-              <div className="rounded-xl overflow-hidden border border-slate-200/60 dark:border-white/5">
+          <ScrollReveal key={i} delay={100}>
+            <div className="mb-8">
+              {ex.caption && <p className="mb-2 text-sm text-fg/55">{ex.caption}</p>}
+              <div className="overflow-hidden rounded-lg border border-fg/10">
                 <Editor
                   height="250px"
                   language={ex.language}
                   value={ex.code}
-                  theme="vs-dark"
-                  options={{ readOnly: true, fontSize: 13, minimap: { enabled: false } }}
+                  theme={editorThemeName(resolvedTheme)}
+                  beforeMount={defineEditorThemes}
+                  options={{
+                    readOnly: true,
+                    fontSize: 13,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    padding: { top: 12 },
+                  }}
                 />
               </div>
               <button
+                type="button"
                 onClick={() => openInCodeLab(ex.code, ex.language)}
-                className="mt-2 text-sm text-accent-purple hover:underline font-medium"
+                className="btn btn-secondary mt-3"
               >
-                Open in CodeLab →
+                Open in CodeLab
+                <ArrowRight size={14} />
               </button>
             </div>
           </ScrollReveal>
         ))}
 
         {article.relatedProblems.length > 0 && (
-          <ScrollReveal delay={200}>
-            <div className="mt-8">
-              <h2 className="font-semibold mb-3">Practice</h2>
-              <div className="flex flex-col gap-2">
+          <ScrollReveal delay={150}>
+            <div className="mt-12">
+              <h2 className="mb-3 text-xl font-semibold">Practice</h2>
+              <div className="card divide-y divide-fg/[0.07] overflow-hidden">
                 {article.relatedProblems.map((p) => (
                   <Link
                     key={p._id}
                     to={`/problems/${p.slug}`}
-                    className="flex justify-between items-center glass-card rounded-xl p-3 hover:border-accent-purple/40 transition"
+                    className="card-hover flex items-center justify-between gap-3 px-4 py-3"
                   >
-                    <span>{p.title}</span>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${difficultyStyle[p.difficulty]}`}>
-                      {p.difficulty}
-                    </span>
+                    <span className="text-sm font-medium">{p.title}</span>
+                    <Tag tone={difficultyTone(p.difficulty)}>{p.difficulty}</Tag>
                   </Link>
                 ))}
               </div>
