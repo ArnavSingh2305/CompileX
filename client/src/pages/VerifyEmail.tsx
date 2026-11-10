@@ -1,15 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../api/axios";
+import { AuthLayout } from "../components/AuthLayout";
+import { Spinner } from "../components/ui/Spinner";
 
 export const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
+  // The verification token is single-use. Guard against React StrictMode
+  // running this effect twice in development, which would burn the token on
+  // the first call and show a false "Verification failed" on the second.
+  const requestedRef = useRef(false);
+
   useEffect(() => {
+    if (requestedRef.current) return;
+
     const token = searchParams.get("token");
 
     if (!token) {
@@ -17,6 +24,8 @@ export const VerifyEmail = () => {
       setMessage("No verification token provided.");
       return;
     }
+
+    requestedRef.current = true;
 
     api
       .get("/auth/verify-email", {
@@ -28,35 +37,29 @@ export const VerifyEmail = () => {
       })
       .catch((err) => {
         setStatus("error");
-        setMessage(
-          err.response?.data?.message || "Verification failed."
-        );
+        setMessage(err.response?.data?.message || "Verification failed.");
       });
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm text-center">
+    <AuthLayout>
+      <div className="text-center">
         {status === "loading" && (
-          <p className="text-slate-500">
-            Verifying your email...
-          </p>
+          <>
+            <div className="mb-4 flex justify-center text-fg/50">
+              <Spinner className="h-6 w-6" />
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight">Verifying your email…</h1>
+            <p className="mt-2 text-sm text-fg/60">This only takes a moment.</p>
+          </>
         )}
 
         {status === "success" && (
           <>
-            <h2 className="text-xl font-bold text-green-600 mb-2">
-              Verified!
-            </h2>
-
-            <p className="text-slate-600 text-sm mb-4">
-              {message}
-            </p>
-
-            <Link
-              to="/login"
-              className="text-blue-600 hover:underline"
-            >
+            <div className="mb-4 text-5xl">✅</div>
+            <h1 className="text-2xl font-semibold tracking-tight">Email verified</h1>
+            <p className="mt-2 text-sm leading-6 text-fg/60">{message}</p>
+            <Link to="/login" className="btn btn-primary btn-lg mt-6">
               Go to Login
             </Link>
           </>
@@ -64,23 +67,15 @@ export const VerifyEmail = () => {
 
         {status === "error" && (
           <>
-            <h2 className="text-xl font-bold text-red-600 mb-2">
-              Verification Failed
-            </h2>
-
-            <p className="text-slate-600 text-sm mb-4">
-              {message}
-            </p>
-
-            <Link
-              to="/login"
-              className="text-blue-600 hover:underline"
-            >
+            <div className="mb-4 text-5xl">⚠️</div>
+            <h1 className="text-2xl font-semibold tracking-tight">Verification failed</h1>
+            <p className="mt-2 text-sm leading-6 text-fg/60">{message}</p>
+            <Link to="/login" className="btn btn-secondary btn-lg mt-6">
               Back to Login
             </Link>
           </>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };

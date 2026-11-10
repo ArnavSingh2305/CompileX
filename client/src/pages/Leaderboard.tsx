@@ -3,6 +3,9 @@ import { useAuth } from "../context/AuthContext";
 import { getLeaderboard } from "../api/leaderboard";
 import type { LeaderboardEntry } from "../api/leaderboard";
 import { ScrollReveal } from "../components/ScrollReveal";
+import { Page } from "../components/ui/Page";
+import { Tag } from "../components/ui/Tag";
+import { Callout } from "../components/ui/Callout";
 
 const medalFor = (rank: number) => {
   if (rank === 1) return "🥇";
@@ -27,98 +30,106 @@ export const Leaderboard = () => {
   const rest = entries.slice(3);
 
   return (
-    <div className="min-h-screen bg-ivory dark:bg-navy-950 p-8">
-      <div className="max-w-2xl mx-auto">
-        <ScrollReveal>
-          <h1 className="text-3xl font-bold mb-1">🏆 Leaderboard</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">Practice. Improve. Climb the ranks.</p>
-        </ScrollReveal>
+    <Page icon="🏆" title="Leaderboard" description="Practice. Improve. Climb the ranks.">
+      <ScrollReveal delay={50}>
+        <div className="mb-6 flex gap-5 border-b border-fg/10">
+          {(["global", "friends", "monthly"] as const).map((t) => (
+            <button
+              type="button"
+              key={t}
+              onClick={() => setTab(t)}
+              className={`view-tab capitalize ${tab === t ? "view-tab-active" : ""}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </ScrollReveal>
 
+      {tab !== "global" ? (
         <ScrollReveal delay={100}>
-          <div className="flex gap-1 mb-6 glass-card rounded-xl p-1 w-fit">
-            {(["global", "friends", "monthly"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition ${
-                  tab === t ? "bg-gradient-brand text-white" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <Callout icon="🚧">
+            {tab === "friends" ? "Friends leaderboard" : "Monthly leaderboard"} is coming soon.
+          </Callout>
         </ScrollReveal>
+      ) : loading ? (
+        <div className="space-y-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="skeleton h-12" />
+          ))}
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-fg/50">No one has solved a problem yet — be the first!</p>
+      ) : (
+        <>
+          {topThree.length > 0 && (
+            <ScrollReveal delay={100}>
+              <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {topThree.map((entry) => {
+                  const isMe = entry.name === user?.name;
+                  return (
+                    <div
+                      key={entry.userId}
+                      className={`card p-4 text-center ${
+                        isMe ? "!border-accent/50 bg-accent/[0.04]" : ""
+                      }`}
+                    >
+                      <div className="mb-1 text-3xl">{medalFor(entry.rank)}</div>
+                      <p className="truncate text-sm font-semibold">{entry.name}</p>
+                      {isMe && (
+                        <Tag tone="blue" className="mt-1">
+                          You
+                        </Tag>
+                      )}
+                      <p className="mt-2 text-xs text-fg/50">{entry.totalSolved} solved</p>
+                      <p className="text-lg font-semibold tabular-nums">
+                        {entry.totalPoints}
+                        <span className="ml-1 text-xs font-medium text-fg/45">pts</span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollReveal>
+          )}
 
-        {tab !== "global" ? (
-          <ScrollReveal delay={150}>
-            <div className="glass-card rounded-2xl p-8 text-center">
-              <p className="text-slate-400 text-sm">
-                {tab === "friends" ? "Friends leaderboard" : "Monthly leaderboard"} is coming soon.
-              </p>
-            </div>
-          </ScrollReveal>
-        ) : loading ? (
-          <p className="text-slate-400 text-sm">Loading...</p>
-        ) : entries.length === 0 ? (
-          <p className="text-slate-400 text-sm">No one has solved a problem yet — be the first!</p>
-        ) : (
-          <>
-            {/* Top 3 podium cards */}
-            {topThree.length > 0 && (
-              <ScrollReveal delay={150}>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {topThree.map((entry) => {
-                    const isMe = entry.name === user?.name;
-                    const isFirst = entry.rank === 1;
-                    return (
-                      <div
-                        key={entry.userId}
-                        className={`glass-card rounded-2xl p-4 text-center ${isFirst ? "scale-105 ring-1 ring-accent-purple/30" : ""} ${isMe ? "border-accent-purple/40" : ""}`}
-                      >
-                        <div className="text-3xl mb-1">{medalFor(entry.rank)}</div>
-                        <p className="font-semibold text-sm truncate">{entry.name}</p>
-                        {isMe && <span className="text-[10px] text-accent-purple">(You)</span>}
-                        <p className="text-xs text-slate-500 mt-1">{entry.totalSolved} solved</p>
-                        <p className="font-bold text-accent-purple">{entry.totalPoints} pts</p>
-                      </div>
-                    );
-                  })}
+          {rest.length > 0 && (
+            <ScrollReveal delay={150}>
+              <div className="overflow-hidden rounded-lg border border-fg/10">
+                <div className="grid grid-cols-[44px_minmax(0,1fr)_72px_72px] items-center gap-x-3 border-b border-fg/10 bg-fg/[0.03] px-4 py-2 text-xs font-medium text-fg/50">
+                  <span>Rank</span>
+                  <span>Name</span>
+                  <span className="text-right">Solved</span>
+                  <span className="text-right">Points</span>
                 </div>
-              </ScrollReveal>
-            )}
-
-            {/* Rest of the board */}
-            {rest.length > 0 && (
-              <ScrollReveal delay={250}>
-                <div className="glass-card rounded-2xl divide-y divide-slate-200/60 dark:divide-white/5">
-                  {rest.map((entry) => {
-                    const isMe = entry.name === user?.name;
-                    return (
-                      <div
-                        key={entry.userId}
-                        className={`flex items-center justify-between p-4 transition ${isMe ? "bg-accent-purple/5" : ""}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 text-center text-slate-400 font-medium">#{entry.rank}</span>
-                          <span>
-                            {entry.name}
-                            {isMe && <span className="text-accent-purple text-xs ml-2">(You)</span>}
-                          </span>
-                        </div>
-                        <div className="flex gap-6 text-sm text-slate-500">
-                          <span>{entry.totalSolved} solved</span>
-                          <span className="font-semibold text-accent-purple">{entry.totalPoints} pts</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </ScrollReveal>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+                {rest.map((entry) => {
+                  const isMe = entry.name === user?.name;
+                  return (
+                    <div
+                      key={entry.userId}
+                      className={`grid grid-cols-[44px_minmax(0,1fr)_72px_72px] items-center gap-x-3 border-b border-fg/[0.07] px-4 py-3 text-sm last:border-b-0 ${
+                        isMe ? "bg-accent/[0.06]" : ""
+                      }`}
+                    >
+                      <span className="font-medium text-fg/50">#{entry.rank}</span>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate">{entry.name}</span>
+                        {isMe && <Tag tone="blue">You</Tag>}
+                      </span>
+                      <span className="text-right tabular-nums text-fg/60">
+                        {entry.totalSolved}
+                      </span>
+                      <span className="text-right font-semibold tabular-nums">
+                        {entry.totalPoints}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollReveal>
+          )}
+        </>
+      )}
+    </Page>
   );
 };

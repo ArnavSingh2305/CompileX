@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Circle, CircleCheck, Search, Star } from "lucide-react";
 import { getProblems, getAllTopics } from "../api/problems";
 import type { ProblemSummary } from "../api/problems";
 import { ScrollReveal } from "../components/ScrollReveal";
+import { Page } from "../components/ui/Page";
+import { Tag } from "../components/ui/Tag";
+import { Callout } from "../components/ui/Callout";
+import { difficultyTone, topicTone } from "../components/ui/tones";
 
-const difficultyStyle: Record<string, string> = {
-  Easy: "text-green-600 bg-green-50 dark:bg-green-500/10 dark:text-green-400",
-  Medium: "text-yellow-600 bg-yellow-50 dark:bg-yellow-500/10 dark:text-yellow-400",
-  Hard: "text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400",
-};
+const ROW_GRID =
+  "grid grid-cols-[22px_minmax(0,1fr)_auto] md:grid-cols-[22px_minmax(0,1fr)_84px_minmax(0,260px)] items-center gap-x-3";
 
 export const ProblemList = () => {
   const [problems, setProblems] = useState<ProblemSummary[]>([]);
@@ -43,101 +45,152 @@ export const ProblemList = () => {
   }, [search, difficulty, topic, status]);
 
   return (
-    <div className="min-h-screen bg-ivory dark:bg-navy-950 p-8">
-      <div className="max-w-4xl mx-auto">
-        <ScrollReveal>
-          <h1 className="text-3xl font-bold mb-1">Problems</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">Sharpen your skills with curated coding problems.</p>
-        </ScrollReveal>
-
-        <ScrollReveal delay={100}>
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="relative flex-1 min-w-[220px]">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-              <input
-                type="text"
-                placeholder="Search problems..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl glass-card focus:outline-none focus:ring-2 focus:ring-accent-purple/40 transition"
-              />
-            </div>
-            <select
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value)}
-              className="px-3 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-accent-purple/40"
-            >
-              <option value="All">All Difficulties</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-            <select
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              className="px-3 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-accent-purple/40"
-            >
-              <option value="">All Topics</option>
-              {topics.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="px-3 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-accent-purple/40"
-            >
-              <option value="All">All</option>
-              <option value="Solved">Solved</option>
-              <option value="Unsolved">Unsolved</option>
-              <option value="Bookmarked">Bookmarked</option>
-            </select>
+    <Page
+      icon="🧩"
+      title="Problems"
+      description="Sharpen your skills with curated coding problems."
+    >
+      <ScrollReveal delay={50}>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px] flex-1">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg/40"
+            />
+            <input
+              type="text"
+              placeholder="Search problems..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input pl-9"
+            />
           </div>
-        </ScrollReveal>
 
-        {error && <p className="text-red-500">{error}</p>}
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="select"
+            aria-label="Difficulty"
+          >
+            <option value="All">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+
+          <select
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="select"
+            aria-label="Topic"
+          >
+            <option value="">All Topics</option>
+            {topics.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="select"
+            aria-label="Status"
+          >
+            <option value="All">All</option>
+            <option value="Solved">Solved</option>
+            <option value="Unsolved">Unsolved</option>
+            <option value="Bookmarked">Bookmarked</option>
+          </select>
+        </div>
+      </ScrollReveal>
+
+      {error && (
+        <Callout tone="red" icon="⚠️" role="alert" className="mb-4">
+          {error}
+        </Callout>
+      )}
+
+      <div className="overflow-hidden rounded-lg border border-fg/10">
+        {/* Column headers (desktop) */}
+        <div
+          className={`${ROW_GRID} hidden border-b border-fg/10 bg-fg/[0.03] px-3 py-2 text-xs font-medium text-fg/50 md:grid`}
+        >
+          <span />
+          <span>Name</span>
+          <span>Difficulty</span>
+          <span>Topics</span>
+        </div>
 
         {loading ? (
-          <p className="text-slate-400 text-sm">Loading...</p>
+          <div className="space-y-px p-3">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="skeleton h-9" />
+            ))}
+          </div>
         ) : problems.length === 0 ? (
-          <p className="text-slate-400 text-sm">No problems match your filters.</p>
+          <p className="px-4 py-10 text-center text-sm text-fg/50">
+            No problems match your filters.
+          </p>
         ) : (
-          <div className="space-y-2">
-            {problems.map((problem, i) => (
-              <ScrollReveal key={problem._id} delay={Math.min(i * 40, 400)}>
-                <Link
-                  to={`/problems/${problem.slug}`}
-                  className="group flex items-center justify-between glass-card rounded-xl p-4 hover:border-accent-purple/40 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-5 text-center">
-                      {problem.solved ? (
-                        <span className="text-green-500 font-bold">✓</span>
-                      ) : (
-                        <span className="text-slate-300 dark:text-slate-600">○</span>
-                      )}
-                    </span>
-                    <div>
-                      <p className="font-medium group-hover:text-accent-purple transition-colors">
-                        {problem.title}
-                        {problem.bookmarked && <span className="ml-2 text-yellow-500">★</span>}
-                      </p>
-                      <div className="flex gap-1.5 mt-1">
-                        {problem.topics.map((t) => (
-                          <span key={t} className="text-[11px] text-slate-400 dark:text-slate-500">
-                            {t}{t !== problem.topics[problem.topics.length - 1] && " ·"}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+          <div className="animate-fade-in">
+            {problems.map((problem) => (
+              <Link
+                key={problem._id}
+                to={`/problems/${problem.slug}`}
+                className={`${ROW_GRID} border-b border-fg/[0.07] px-3 py-2.5 transition-colors last:border-b-0 hover:bg-fg/[0.04]`}
+              >
+                <span className="flex justify-center">
+                  {problem.solved ? (
+                    <CircleCheck size={17} className="text-[rgb(var(--t-green-fg))]" />
+                  ) : (
+                    <Circle size={17} className="text-fg/25" />
+                  )}
+                </span>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-medium">{problem.title}</span>
+                    {problem.bookmarked && (
+                      <Star
+                        size={13}
+                        fill="currentColor"
+                        className="shrink-0 text-[rgb(var(--t-yellow-fg))]"
+                      />
+                    )}
                   </div>
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${difficultyStyle[problem.difficulty]}`}>
-                    {problem.difficulty}
-                  </span>
-                </Link>
-              </ScrollReveal>
+                  <div className="mt-1 flex flex-wrap gap-1 md:hidden">
+                    {problem.topics.map((t) => (
+                      <Tag key={t} tone={topicTone(t)}>
+                        {t}
+                      </Tag>
+                    ))}
+                  </div>
+                </div>
+
+                <span className="flex items-center">
+                  <Tag tone={difficultyTone(problem.difficulty)}>{problem.difficulty}</Tag>
+                </span>
+
+                <div className="hidden flex-wrap gap-1 md:flex">
+                  {problem.topics.map((t) => (
+                    <Tag key={t} tone={topicTone(t)}>
+                      {t}
+                    </Tag>
+                  ))}
+                </div>
+              </Link>
             ))}
           </div>
         )}
       </div>
-    </div>
+
+      {!loading && problems.length > 0 && (
+        <p className="mt-3 text-xs text-fg/40">
+          {problems.length} problem{problems.length !== 1 ? "s" : ""}
+        </p>
+      )}
+    </Page>
   );
 };

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { AuthLayout } from "../components/AuthLayout";
+import { Callout } from "../components/ui/Callout";
+import type { FormEvent } from "react";
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -8,7 +11,7 @@ export const ForgotPassword = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     setMessage("");
@@ -22,67 +25,56 @@ export const ForgotPassword = () => {
 
       setMessage(res.data.message);
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "Unable to process your request."
-      );
+      setError(err.response?.data?.message || "Unable to process your request.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-2 text-center">
-          Forgot Password
-        </h2>
+    <AuthLayout>
+      <h1 className="text-2xl font-semibold tracking-tight">Forgot password</h1>
+      <p className="mt-1 text-sm text-fg/60">
+        Enter your email and we'll send you a password reset link.
+      </p>
 
-        <p className="text-sm text-slate-500 text-center mb-6">
-          Enter your email and we'll send you a password reset link.
-        </p>
-
+      <div className="mt-6 space-y-3">
         {message && (
-          <div className="bg-green-100 text-green-700 p-2 rounded mb-4 text-sm">
+          <Callout tone="green" icon="✅" role="status">
             {message}
-          </div>
+          </Callout>
         )}
-
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+          <Callout tone="red" icon="⚠️" role="alert">
             {error}
-          </div>
+          </Callout>
         )}
+      </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 rounded mb-4"
-          required
-        />
+      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-fg/60">Email</span>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input"
+            required
+          />
+        </label>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
           {loading ? "Sending..." : "Send Reset Link"}
         </button>
-
-        <p className="text-sm text-center mt-4">
-          <Link
-            to="/login"
-            className="text-blue-600 hover:underline"
-          >
-            Back to Login
-          </Link>
-        </p>
       </form>
-    </div>
+
+      <p className="mt-6 text-center text-sm">
+        <Link to="/login" className="font-medium text-link hover:underline">
+          ← Back to Login
+        </Link>
+      </p>
+    </AuthLayout>
   );
 };

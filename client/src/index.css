@@ -2,68 +2,310 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-base: #FDF9F6;
-  --bg-card: #FFFCFA;
-  --text-primary: #0B0E1A;
+/* ------------------------------------------------------------------ */
+/*  Design tokens — Notion-inspired. Values are space-separated RGB   */
+/*  channels so Tailwind can apply alpha (e.g. border-fg/10).         */
+/* ------------------------------------------------------------------ */
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --c-bg: 255 255 255;
+    --c-side: 247 247 245;
+    --c-fg: 55 53 47;
+    --c-code: 247 246 243;
+    --c-link: 35 131 226;
+    --c-accent: 35 131 226;
+    --c-accent-hover: 0 119 212;
+    --c-accent-fg: 255 255 255;
+
+    /* Tag / callout tones (background + text) */
+    --t-gray-bg: 241 241 239;   --t-gray-fg: 99 98 95;
+    --t-brown-bg: 244 238 238;  --t-brown-fg: 140 92 70;
+    --t-orange-bg: 251 236 221; --t-orange-fg: 181 96 12;
+    --t-yellow-bg: 251 243 219; --t-yellow-fg: 150 108 22;
+    --t-green-bg: 237 243 236;  --t-green-fg: 55 116 83;
+    --t-blue-bg: 231 243 248;   --t-blue-fg: 40 112 152;
+    --t-purple-bg: 244 240 247; --t-purple-fg: 125 82 158;
+    --t-pink-bg: 249 238 243;   --t-pink-fg: 172 56 120;
+    --t-red-bg: 253 235 236;    --t-red-fg: 190 55 51;
+
+    --shadow-card: rgba(15, 15, 15, 0.04) 0 0 0 1px, rgba(15, 15, 15, 0.06) 0 2px 6px;
+    --shadow-pop: rgba(15, 15, 15, 0.05) 0 0 0 1px, rgba(15, 15, 15, 0.08) 0 4px 12px,
+      rgba(15, 15, 15, 0.12) 0 16px 40px;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --c-bg: 25 25 25;
+    --c-side: 32 32 32;
+    --c-fg: 230 230 230;
+    --c-code: 37 37 37;
+    --c-link: 82 156 202;
+    --c-accent: 35 131 226;
+    --c-accent-hover: 56 148 240;
+    --c-accent-fg: 255 255 255;
+
+    --t-gray-bg: 69 75 78;      --t-gray-fg: 151 154 155;
+    --t-brown-bg: 67 64 64;     --t-brown-fg: 147 114 100;
+    --t-orange-bg: 89 74 58;    --t-orange-fg: 255 163 68;
+    --t-yellow-bg: 89 86 59;    --t-yellow-fg: 255 220 73;
+    --t-green-bg: 53 76 75;     --t-green-fg: 77 171 154;
+    --t-blue-bg: 54 73 84;      --t-blue-fg: 82 156 202;
+    --t-purple-bg: 68 63 87;    --t-purple-fg: 154 109 215;
+    --t-pink-bg: 83 59 76;      --t-pink-fg: 226 85 161;
+    --t-red-bg: 89 65 65;       --t-red-fg: 255 115 105;
+
+    --shadow-card: rgba(255, 255, 255, 0.06) 0 0 0 1px, rgba(0, 0, 0, 0.3) 0 2px 6px;
+    --shadow-pop: rgba(255, 255, 255, 0.08) 0 0 0 1px, rgba(0, 0, 0, 0.4) 0 4px 12px,
+      rgba(0, 0, 0, 0.5) 0 16px 40px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: rgb(var(--c-bg));
+    color: rgb(var(--c-fg));
+    font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+      Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  ::selection {
+    background: rgb(var(--c-accent) / 0.25);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-accent) / 0.65);
+    outline-offset: 2px;
+  }
+
+  input[type="range"],
+  input[type="checkbox"] {
+    accent-color: rgb(var(--c-accent));
+  }
+
+  /* Theme-aware range sliders (native tracks look harsh in dark mode) */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 9999px;
+    background: rgb(var(--c-fg) / 0.15);
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: rgb(var(--c-accent));
+    border: 2px solid rgb(var(--c-bg));
+    box-shadow: 0 0 0 1px rgb(var(--c-fg) / 0.2);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: rgb(var(--c-fg) / 0.15);
+  }
+  input[type="range"]::-moz-range-progress {
+    height: 4px;
+    border-radius: 9999px;
+    background: rgb(var(--c-accent));
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: rgb(var(--c-accent));
+    border: 2px solid rgb(var(--c-bg));
+  }
+
+  /* Thin, unobtrusive scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-fg) / 0.2) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-fg) / 0.18);
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--c-fg) / 0.3);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-.dark {
-  --bg-base: #080B16;
-  --bg-card: rgba(21, 26, 48, 0.6);
-  --text-primary: #F4F6FB;
-}
+/* ------------------------------------------------------------------ */
+/*  Reusable UI primitives                                             */
+/* ------------------------------------------------------------------ */
+@layer components {
+  /* Tone helpers: set the colour pair, consumed by .tag / .callout / .tone-text */
+  .tone-gray   { --tone-bg: var(--t-gray-bg);   --tone-fg: var(--t-gray-fg); }
+  .tone-brown  { --tone-bg: var(--t-brown-bg);  --tone-fg: var(--t-brown-fg); }
+  .tone-orange { --tone-bg: var(--t-orange-bg); --tone-fg: var(--t-orange-fg); }
+  .tone-yellow { --tone-bg: var(--t-yellow-bg); --tone-fg: var(--t-yellow-fg); }
+  .tone-green  { --tone-bg: var(--t-green-bg);  --tone-fg: var(--t-green-fg); }
+  .tone-blue   { --tone-bg: var(--t-blue-bg);   --tone-fg: var(--t-blue-fg); }
+  .tone-purple { --tone-bg: var(--t-purple-bg); --tone-fg: var(--t-purple-fg); }
+  .tone-pink   { --tone-bg: var(--t-pink-bg);   --tone-fg: var(--t-pink-fg); }
+  .tone-red    { --tone-bg: var(--t-red-bg);    --tone-fg: var(--t-red-fg); }
 
-html {
-  scroll-behavior: smooth;
-}
+  .tone-text {
+    color: rgb(var(--tone-fg, var(--t-gray-fg)));
+  }
 
-body {
-  margin: 0;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-}
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 4px;
+    padding: 0 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    background-color: rgb(var(--tone-bg, var(--t-gray-bg)));
+    color: rgb(var(--tone-fg, var(--t-gray-fg)));
+  }
 
-/* Subtle technical grid */
-.bg-grid {
-  background-image:
-    linear-gradient(
-      to right,
-      rgba(120, 120, 140, 0.06) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(120, 120, 140, 0.06) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
-}
+  .callout {
+    display: flex;
+    gap: 0.75rem;
+    border-radius: 6px;
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    background-color: rgb(var(--tone-bg, var(--c-code)));
+  }
 
-.dark .bg-grid {
-  background-image:
-    linear-gradient(
-      to right,
-      rgba(160, 160, 220, 0.06) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(160, 160, 220, 0.06) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
-}
+  .btn {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-accent text-accent-fg hover:bg-accent-hover;
+  }
+  .btn-secondary {
+    @apply border border-fg/15 bg-bg text-fg hover:bg-fg/5;
+  }
+  .btn-ghost {
+    @apply text-fg/70 hover:bg-fg/5 hover:text-fg;
+  }
+  .btn-lg {
+    @apply h-10 px-4 text-[15px];
+  }
+  .btn-block {
+    @apply w-full;
+  }
 
-/* Glass card foundation */
+  .input {
+    @apply h-9 w-full rounded-md border border-fg/15 bg-fg/[0.03] px-3 text-sm text-fg transition placeholder:text-fg/40 focus:border-accent focus:bg-bg focus:outline-none focus:ring-2 focus:ring-accent/25;
+  }
+  .select {
+    @apply h-8 rounded-md border border-fg/15 bg-bg px-2 text-sm text-fg transition hover:bg-fg/5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25;
+  }
 
-.glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(100, 100, 120, 0.18);
+  .card {
+    @apply rounded-lg border border-fg/10 bg-bg;
+  }
+  .card-hover {
+    @apply transition-colors duration-150 hover:bg-fg/[0.035];
+  }
+
+  .view-tab {
+    @apply -mb-px border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-fg/50 transition-colors hover:text-fg;
+  }
+  .view-tab-active {
+    @apply border-fg text-fg;
+  }
+
+  .chip {
+    @apply rounded-md px-2.5 py-1 text-sm font-medium text-fg/60 transition-colors hover:bg-fg/5 hover:text-fg;
+  }
+  .chip-active {
+    @apply bg-fg/[0.08] text-fg;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-md bg-fg/[0.06];
+  }
+
+  /* Minimal syntax colours for static code mock-ups (landing page) */
+  .syn-kw  { color: rgb(var(--t-purple-fg)); }
+  .syn-str { color: rgb(var(--t-green-fg)); }
+  .syn-fn  { color: rgb(var(--t-blue-fg)); }
+  .syn-num { color: rgb(var(--t-orange-fg)); }
+  .syn-cm  { color: rgb(var(--c-fg) / 0.45); }
+
+  /* Markdown content (articles + AI replies) in the Notion look */
+  .prose.prose-notion {
+    --tw-prose-body: rgb(var(--c-fg));
+    --tw-prose-headings: rgb(var(--c-fg));
+    --tw-prose-lead: rgb(var(--c-fg) / 0.7);
+    --tw-prose-links: rgb(var(--c-link));
+    --tw-prose-bold: rgb(var(--c-fg));
+    --tw-prose-counters: rgb(var(--c-fg) / 0.5);
+    --tw-prose-bullets: rgb(var(--c-fg) / 0.4);
+    --tw-prose-hr: rgb(var(--c-fg) / 0.12);
+    --tw-prose-quotes: rgb(var(--c-fg));
+    --tw-prose-quote-borders: rgb(var(--c-fg));
+    --tw-prose-captions: rgb(var(--c-fg) / 0.5);
+    --tw-prose-code: rgb(var(--t-red-fg));
+    --tw-prose-pre-code: rgb(var(--c-fg));
+    --tw-prose-pre-bg: rgb(var(--c-code));
+    --tw-prose-th-borders: rgb(var(--c-fg) / 0.15);
+    --tw-prose-td-borders: rgb(var(--c-fg) / 0.1);
+  }
+  .prose-notion code::before,
+  .prose-notion code::after {
+    content: none !important;
+  }
+  .prose.prose-notion :where(:not(pre) > code) {
+    background: rgb(var(--c-fg) / 0.08);
+    border-radius: 4px;
+    padding: 0.15em 0.4em;
+    font-weight: 500;
+    font-size: 0.875em;
+  }
+  .prose.prose-notion :where(h2, h3) {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .prose.prose-notion :where(pre) {
+    border-radius: 6px;
+  }
+  .prose.prose-notion :where(blockquote) {
+    font-style: normal;
+    font-weight: 400;
+    border-left-width: 3px;
+  }
+  .prose-notion blockquote p::before,
+  .prose-notion blockquote p::after {
+    content: none !important;
+  }
 }

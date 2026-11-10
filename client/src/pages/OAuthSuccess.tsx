@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
+import { Spinner } from "../components/ui/Spinner";
 
 export const OAuthSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -35,8 +36,9 @@ export const OAuthSuccess = () => {
   }, [navigate, searchParams, login]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <p className="text-slate-500">Signing you in...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-fg/60">
+      <Spinner className="h-6 w-6" />
+      <p className="text-sm">Signing you in…</p>
     </div>
   );
 };
