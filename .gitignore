@@ -4,3 +4,6 @@ dist/
 build/
 .DS_Store
 *.log
+
+# Local environment backups
+server/.env.backup

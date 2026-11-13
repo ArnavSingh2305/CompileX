@@ -6,6 +6,7 @@ import { AuthLayout } from "../components/AuthLayout";
 import { GoogleButton } from "../components/GoogleButton";
 import { Callout } from "../components/ui/Callout";
 import type { FormEvent } from "react";
+import { getDashboardPath } from "../utils/roleRedirect";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,12 @@ export const Login = () => {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data.user, res.data.token);
-      navigate("/dashboard");
+
+      if (res.data.user.mustChangePassword) {
+        navigate("/change-password", { replace: true });
+      } else {
+        navigate(getDashboardPath(res.data.user.role), { replace: true });
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

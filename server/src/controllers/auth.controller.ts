@@ -147,7 +147,11 @@ export const login = async (req: Request, res: Response) => {
         message: "Invalid credentials",
       });
     }
-
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account has been deactivated",
+      });
+    }
     if (!user.isVerified) {
       return res.status(403).json({
         message: "Please verify your email before logging in",
@@ -162,6 +166,8 @@ export const login = async (req: Request, res: Response) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword,
       },
     });
   } catch (error) {
@@ -265,35 +271,72 @@ export const googleCallback = (req: Request, res: Response) => {
   res.redirect(`${process.env.CLIENT_URL}/oauth-success?code=${code}`);
 };
 
+
 export const exchangeOAuthCode = async (req: Request, res: Response) => {
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ message: "Code is required" });
+  try {
+    const { code } = req.body;
 
-  const entry = oauthCodes.get(code);
-  if (!entry || entry.expiresAt < Date.now()) {
+    if (typeof code !== "string" || !/^[a-f0-9]{48}$/.test(code)) {
+      return res.status(400).json({ message: "Invalid OAuth code" });
+    }
+
+    const entry = oauthCodes.get(code);
+
+    if (!entry || entry.expiresAt < Date.now()) {
+      oauthCodes.delete(code);
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    // One-time use
     oauthCodes.delete(code);
-    return res.status(400).json({ message: "Invalid or expired code" });
+
+    const user = await User.findById(entry.userId).select(
+      "name email role isActive mustChangePassword"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account has been deactivated",
+      });
+    }
+
+    const token = generateToken(user._id.toString());
+
+    return res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword,
+      },
+    });
+  } catch (error) {
+    console.error("OAuth code exchange error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
-
-  oauthCodes.delete(code); // one-time use — critical
-
-  const user = await User.findById(entry.userId).select("name email");
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  const token = generateToken((user._id as any).toString());
-  res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email } });
 };
+
+
 
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) {
       return res.status(401).json({
-        message: "Unauthorized",  
+        message: "Unauthorized",
       });
     }
 
     const user = await User.findById(req.userId).select(
-      "_id name email isVerified authProviders createdAt"
+      "_id name email role isActive teacherId mustChangePassword isVerified authProviders createdAt"
     );
 
     if (!user) {
@@ -302,10 +345,19 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account has been deactivated",
+      });
+    }
+
     return res.status(200).json({
       id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
+      teacherId: user.teacherId,
+      mustChangePassword: user.mustChangePassword,
       isVerified: user.isVerified,
       authProviders: user.authProviders,
       createdAt: user.createdAt,
@@ -319,13 +371,35 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const changePassword = async (req: AuthRequest, res: Response) => {
+
+export const changePassword = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const { oldPassword, newPassword } = req.body;
 
-    if (!newPassword || newPassword.length < 6) {
+    if (!req.userId) {
+      return res.status(401).json({
+        message: "Authentication required",
+      });
+    }
+
+    if (!oldPassword || !newPassword) {
       return res.status(400).json({
-        message: "New password must be at least 6 characters",
+        message: "Current and new passwords are required",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "New password must be at least 8 characters",
+      });
+    }
+
+    if (oldPassword === newPassword) {
+      return res.status(400).json({
+        message: "New password must be different from the current password",
       });
     }
 
@@ -334,6 +408,12 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     if (!user || !user.password) {
       return res.status(400).json({
         message: "Password change not available for this account",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Your account has been deactivated",
       });
     }
 
@@ -346,15 +426,19 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    user.mustChangePassword = false;
+
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Password updated successfully",
+      mustChangePassword: false,
     });
-  } catch (error: any) {
-    res.status(500).json({
+  } catch (error) {
+    console.error("Change password error:", error);
+
+    return res.status(500).json({
       message: "Server error",
-      error: error.message,
     });
   }
 };

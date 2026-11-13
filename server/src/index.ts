@@ -15,6 +15,8 @@ import aiRoutes from "./routes/ai.routes";
 import passport from "./config/passport";
 import leaderboardRoutes from "./routes/leaderboard.routes";
 import { errorHandler } from "./middleware/errorHandler.middleware";
+import teacherRoutes from "./routes/teacher.routes";
+import adminRoutes from "./routes/admin.routes";
 
 const app = express();
 
@@ -35,7 +37,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(passport.initialize());
 
 app.use("/api/auth", authRoutes);
@@ -47,6 +49,8 @@ app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/articles", articleRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/teacher", teacherRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "CompileX backend is running" });

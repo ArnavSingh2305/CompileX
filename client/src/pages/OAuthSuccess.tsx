@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import { Spinner } from "../components/ui/Spinner";
+import { getDashboardPath } from "../utils/roleRedirect";
 
 export const OAuthSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -27,7 +28,7 @@ export const OAuthSuccess = () => {
       .post("/auth/oauth/exchange", { code })
       .then((res) => {
         login(res.data.user, res.data.token);
-        navigate("/dashboard");
+        navigate(getDashboardPath(res.data.user.role));
       })
       .catch((error) => {
         console.error("OAuth authentication failed:", error);
