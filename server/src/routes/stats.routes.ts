@@ -1,10 +1,19 @@
+
 import { Router } from "express";
-import { getUserStats } from "../controllers/stats.controller";
-import { protect } from "../middleware/auth.middleware";
-import { getActivityHeatmap } from "../controllers/stats.controller";
+import {
+  getUserStats,
+  getActivityHeatmap,
+} from "../controllers/stats.controller";
+import {
+  protect,
+  authorize,
+} from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/", protect, getUserStats);
-router.get("/activity", protect, getActivityHeatmap);
+router.use(protect, authorize("user"));
+
+router.get("/", getUserStats);
+router.get("/activity", getActivityHeatmap);
+
 export default router;

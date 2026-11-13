@@ -15,3 +15,10 @@ export const submissionLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+export const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+  message: { message: "Too many AI requests. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

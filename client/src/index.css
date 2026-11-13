@@ -309,3 +309,22 @@
     content: none !important;
   }
 }
+
+/* Fix native dropdown option visibility in light and dark themes */
+select {
+  color-scheme: light;
+}
+
+.dark select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #252525;
+}
+
+.dark select option {
+  background-color: #252525;
+  color: #f5f5f5;
+}

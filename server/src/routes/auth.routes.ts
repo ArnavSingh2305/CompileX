@@ -38,7 +38,7 @@ router.get(
   googleCallback
 );
 router.get("/me", protect, getMe);
-router.post("/oauth/exchange", exchangeOAuthCode);
+router.post("/oauth/exchange", authLimiter, exchangeOAuthCode);
 router.post(
   "/register",
   authLimiter,
